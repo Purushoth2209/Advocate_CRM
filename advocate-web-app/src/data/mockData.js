@@ -369,14 +369,149 @@ export const mockDocuments = [
   { id: 'doc-012', caseId: 'case-003', clientId: 'cli-003', name: 'Rejection Letter.pdf', type: 'pdf', category: 'Evidence', uploadedBy: 'cli-003', uploadedByName: 'Anand Kumar', uploadedAt: '2025-01-22', size: '0.4 MB', visibility: 'shared', description: 'Claim rejection letter from ABC Insurance' },
 ];
 
-// ─── Appointments ──────────────────────────────────────────────────────────
+// ─── Advocate Availability ────────────────────────────────────────────────
+// weeklyHours: 0=Sun,1=Mon,...,6=Sat; each day = array of {start,end} in HH:MM
+export const mockAvailability = {
+  advocateId: 'adv-001',
+  slotDuration: 60,    // minutes per appointment slot
+  bufferTime: 15,      // minutes gap between consecutive slots
+  lateCancelHours: 24, // hours before appt that counts as "late cancel"
+  autoDeclineHours: 24,// hours after request with no response → auto-decline
+  weeklyHours: {
+    0: [],  // Sunday — closed
+    1: [{ start: '10:00', end: '13:00' }, { start: '15:00', end: '18:00' }],
+    2: [{ start: '10:00', end: '13:00' }, { start: '15:00', end: '18:00' }],
+    3: [{ start: '10:00', end: '13:00' }, { start: '15:00', end: '18:00' }],
+    4: [{ start: '10:00', end: '13:00' }, { start: '15:00', end: '18:00' }],
+    5: [{ start: '10:00', end: '13:00' }],
+    6: [],  // Saturday — closed
+  },
+  blockedDates: [
+    { id: 'blk-001', date: '2026-04-10', reason: 'Court Hearing — Kumar vs State of TN' },
+    { id: 'blk-002', date: '2026-04-15', reason: 'Public Holiday — Tamil New Year' },
+    { id: 'blk-003', date: '2026-04-16', reason: 'Public Holiday' },
+    { id: 'blk-004', date: '2026-04-25', reason: 'Bar Council Meeting' },
+  ],
+};
+
+// ─── Appointments (full state machine) ──────────────────────────────────────
+// status: 'requested' | 'confirmed' | 'declined' | 'auto-declined' |
+//         'reschedule-proposed' | 'cancelled-client' | 'cancelled-advocate' |
+//         'completed' | 'no-show'
 export const mockAppointments = [
-  { id: 'apt-001', caseId: 'case-001', clientId: 'cli-001', advocateId: 'adv-001', date: '2026-04-08', time: '03:00 PM', duration: 60, purpose: 'Final arguments strategy discussion', type: 'in-person', status: 'confirmed', notes: 'Bring all property documents', location: 'Office — Room 2' },
-  { id: 'apt-002', caseId: 'case-004', clientId: 'cli-004', advocateId: 'adv-003', date: '2026-04-12', time: '04:00 PM', duration: 45, purpose: 'Pre-hearing client briefing', type: 'video-call', status: 'pending', notes: '', location: 'Google Meet' },
-  { id: 'apt-003', caseId: 'case-002', clientId: 'cli-002', advocateId: 'adv-002', date: '2026-04-20', time: '11:00 AM', duration: 30, purpose: 'Judgment preparation review', type: 'in-person', status: 'confirmed', notes: 'Bring copies of stay order', location: 'Office — Room 1' },
-  { id: 'apt-004', caseId: 'case-005', clientId: 'cli-005', advocateId: 'adv-002', date: '2026-04-14', time: '02:00 PM', duration: 90, purpose: 'Discovery document review', type: 'in-person', status: 'confirmed', notes: 'Bring IP registration certificates', location: 'Office — Conference Room' },
-  { id: 'apt-005', caseId: 'case-003', clientId: 'cli-003', advocateId: 'adv-001', date: '2026-05-01', time: '10:00 AM', duration: 30, purpose: 'Case update discussion', type: 'phone-call', status: 'pending', notes: '', location: 'Phone' },
-  { id: 'apt-006', caseId: null, clientId: 'cli-001', advocateId: 'adv-001', date: '2026-04-09', time: '05:00 PM', duration: 30, purpose: 'General consultation — new matter', type: 'in-person', status: 'confirmed', notes: 'Client wants to discuss employment matter', location: 'Office — Room 2' },
+  {
+    id: 'apt-001', caseId: 'case-001', clientId: 'cli-001', advocateId: 'adv-001',
+    date: '2026-04-08', timeStart: '15:00', time: '03:00 PM', duration: 60,
+    purpose: 'Strategy discussion for final arguments', type: 'in-person',
+    status: 'confirmed', initiatedBy: 'advocate',
+    notes: 'Bring all property documents', location: 'Office — Room 2',
+    cancellationReason: null, isLateCancel: false, rescheduleProposal: null,
+    history: [
+      { timestamp: '2026-04-01T10:00:00', action: 'created', by: 'advocate', note: 'Scheduled pre-hearing strategy session' },
+      { timestamp: '2026-04-01T10:00:00', action: 'confirmed', by: 'advocate', note: 'Advocate initiated — auto-confirmed' },
+    ],
+  },
+  {
+    id: 'apt-002', caseId: 'case-004', clientId: 'cli-004', advocateId: 'adv-003',
+    date: '2026-04-12', timeStart: '16:00', time: '04:00 PM', duration: 45,
+    purpose: 'Pre-hearing client briefing', type: 'video-call',
+    status: 'requested', initiatedBy: 'client',
+    notes: '', location: 'Google Meet',
+    cancellationReason: null, isLateCancel: false, rescheduleProposal: null,
+    history: [
+      { timestamp: '2026-04-05T09:00:00', action: 'created', by: 'client', note: 'Client requested appointment' },
+    ],
+  },
+  {
+    id: 'apt-003', caseId: 'case-002', clientId: 'cli-002', advocateId: 'adv-002',
+    date: '2026-04-20', timeStart: '11:00', time: '11:00 AM', duration: 30,
+    purpose: 'Judgment preparation review', type: 'in-person',
+    status: 'confirmed', initiatedBy: 'advocate',
+    notes: 'Bring copies of stay order', location: 'Office — Room 1',
+    cancellationReason: null, isLateCancel: false, rescheduleProposal: null,
+    history: [
+      { timestamp: '2026-04-02T11:00:00', action: 'created', by: 'advocate', note: '' },
+      { timestamp: '2026-04-02T11:00:00', action: 'confirmed', by: 'advocate', note: 'Advocate initiated' },
+    ],
+  },
+  {
+    id: 'apt-004', caseId: 'case-005', clientId: 'cli-005', advocateId: 'adv-002',
+    date: '2026-04-14', timeStart: '14:00', time: '02:00 PM', duration: 90,
+    purpose: 'Discovery document review', type: 'in-person',
+    status: 'requested', initiatedBy: 'client',
+    notes: 'Bring IP registration certificates', location: 'Office — Conference Room',
+    cancellationReason: null, isLateCancel: false, rescheduleProposal: null,
+    history: [
+      { timestamp: '2026-04-06T14:00:00', action: 'created', by: 'client', note: 'Client requested for discovery review' },
+    ],
+  },
+  {
+    id: 'apt-005', caseId: 'case-003', clientId: 'cli-003', advocateId: 'adv-001',
+    date: '2026-05-01', timeStart: '10:00', time: '10:00 AM', duration: 30,
+    purpose: 'Case update discussion', type: 'phone-call',
+    status: 'confirmed', initiatedBy: 'advocate',
+    notes: '', location: 'Phone',
+    cancellationReason: null, isLateCancel: false, rescheduleProposal: null,
+    history: [
+      { timestamp: '2026-04-03T09:00:00', action: 'created', by: 'advocate', note: '' },
+      { timestamp: '2026-04-03T09:00:00', action: 'confirmed', by: 'advocate', note: '' },
+    ],
+  },
+  {
+    id: 'apt-006', caseId: null, clientId: 'cli-001', advocateId: 'adv-001',
+    date: '2026-04-09', timeStart: '11:00', time: '11:00 AM', duration: 30,
+    purpose: 'General consultation — new employment matter', type: 'in-person',
+    status: 'requested', initiatedBy: 'client',
+    notes: 'Client wants to discuss a new employment dispute', location: 'Office — Room 2',
+    cancellationReason: null, isLateCancel: false, rescheduleProposal: null,
+    history: [
+      { timestamp: '2026-04-07T08:00:00', action: 'created', by: 'client', note: 'Client requested general consultation' },
+    ],
+  },
+  {
+    id: 'apt-007', caseId: 'case-001', clientId: 'cli-001', advocateId: 'adv-001',
+    date: '2026-03-20', timeStart: '10:00', time: '10:00 AM', duration: 60,
+    purpose: 'Evidence review session', type: 'in-person',
+    status: 'completed', initiatedBy: 'advocate',
+    notes: 'Reviewed all property documents', location: 'Office — Room 2',
+    cancellationReason: null, isLateCancel: false, rescheduleProposal: null,
+    history: [
+      { timestamp: '2026-03-15T10:00:00', action: 'created', by: 'advocate', note: '' },
+      { timestamp: '2026-03-15T10:00:00', action: 'confirmed', by: 'advocate', note: '' },
+      { timestamp: '2026-03-20T11:05:00', action: 'completed', by: 'system', note: 'Meeting completed' },
+    ],
+  },
+  {
+    id: 'apt-008', caseId: 'case-002', clientId: 'cli-002', advocateId: 'adv-002',
+    date: '2026-03-15', timeStart: '15:00', time: '03:00 PM', duration: 60,
+    purpose: 'Pre-judgment strategy meeting', type: 'in-person',
+    status: 'no-show', initiatedBy: 'advocate',
+    notes: '', location: 'Office — Room 1',
+    cancellationReason: null, isLateCancel: false, rescheduleProposal: null,
+    history: [
+      { timestamp: '2026-03-10T09:00:00', action: 'created', by: 'advocate', note: '' },
+      { timestamp: '2026-03-10T09:00:00', action: 'confirmed', by: 'advocate', note: '' },
+      { timestamp: '2026-03-15T16:05:00', action: 'no-show', by: 'advocate', note: 'Client did not attend' },
+    ],
+  },
+  {
+    id: 'apt-009', caseId: 'case-003', clientId: 'cli-003', advocateId: 'adv-001',
+    date: '2026-04-17', timeStart: '12:00', time: '12:00 PM', duration: 60,
+    purpose: 'Insurance claim deep-dive', type: 'in-person',
+    status: 'reschedule-proposed', initiatedBy: 'client',
+    notes: '', location: 'Office — Room 2',
+    cancellationReason: null, isLateCancel: false,
+    rescheduleProposal: {
+      date: '2026-04-19', timeStart: '11:00', time: '11:00 AM',
+      proposedBy: 'advocate', proposedAt: '2026-04-07T09:00:00',
+      reason: 'Conflict with court prep on the 17th',
+    },
+    history: [
+      { timestamp: '2026-04-04T10:00:00', action: 'created', by: 'client', note: '' },
+      { timestamp: '2026-04-05T11:00:00', action: 'confirmed', by: 'advocate', note: '' },
+      { timestamp: '2026-04-07T09:00:00', action: 'reschedule-proposed', by: 'advocate', note: 'Conflict with court prep on the 17th' },
+    ],
+  },
 ];
 
 // ─── Chat Messages ────────────────────────────────────────────────────────
