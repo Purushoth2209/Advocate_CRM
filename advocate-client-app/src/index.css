@@ -9,8 +9,27 @@
   }
 }
 
+@layer components {
+  .ld-hero {
+    @apply bg-gradient-to-br from-navy-800 to-navy-700;
+  }
+  .ld-btn-primary {
+    @apply bg-navy-700 hover:bg-navy-800 text-white shadow-sm;
+  }
+  .ld-focus {
+    @apply focus:outline-none focus:ring-2 focus:ring-navy-500/30 focus:border-navy-600;
+  }
+}
+
 @layer utilities {
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }

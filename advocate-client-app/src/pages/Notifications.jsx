@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Bell, Gavel, FileText, MessageSquare, Wallet } from 'lucide-react';
 import Header from '../components/layout/Header';
-import { mockNotifications } from '../data/mockData';
+import { useClientAppData } from '../context/ClientExperienceContext';
 
 function timeAgo(t) { return t; }
 
@@ -15,8 +15,9 @@ const typeConfig = {
 
 export default function Notifications() {
   const navigate = useNavigate();
-  const unread = mockNotifications.filter(n => !n.read);
-  const read = mockNotifications.filter(n => n.read);
+  const { notifications } = useClientAppData();
+  const unread = notifications.filter(n => !n.read);
+  const read = notifications.filter(n => n.read);
 
   const handleTap = (notif) => {
     if (notif.caseId) navigate(`/cases/${notif.caseId}`);
@@ -29,7 +30,7 @@ export default function Notifications() {
       <button
         onClick={() => handleTap(notif)}
         className={`w-full flex items-start gap-3 p-4 rounded-2xl text-left transition-colors border ${
-          notif.read ? 'bg-white border-gray-100' : 'bg-indigo-50/40 border-primary-100'
+          notif.read ? 'bg-white border-gray-100' : 'bg-navy-50/80 border-navy-100'
         }`}
       >
         <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${config.color}`}>
@@ -40,7 +41,7 @@ export default function Notifications() {
             <p className={`text-sm font-semibold leading-tight ${notif.read ? 'text-gray-700' : 'text-gray-900'}`}>
               {notif.title}
             </p>
-            {!notif.read && <div className="w-2 h-2 bg-primary-600 rounded-full flex-shrink-0 mt-1" />}
+            {!notif.read && <div className="w-2 h-2 bg-navy-700 rounded-full flex-shrink-0 mt-1" />}
           </div>
           <p className="text-xs text-gray-500 mt-0.5 leading-snug">{notif.message}</p>
           <p className="text-[10px] text-gray-400 mt-1.5">{notif.time}</p>

@@ -1,4 +1,4 @@
-export function Badge({ children, variant = 'default', size = 'sm' }) {
+export function Badge({ children, variant = 'default', size = 'sm', className = '' }) {
   const variants = {
     default: 'bg-gray-100 text-gray-700',
     blue: 'bg-blue-100 text-blue-700',
@@ -14,7 +14,7 @@ export function Badge({ children, variant = 'default', size = 'sm' }) {
     md: 'text-sm px-2.5 py-1',
   };
   return (
-    <span className={`inline-flex items-center font-medium rounded-full ${variants[variant]} ${sizes[size]}`}>
+    <span className={`inline-flex items-center font-medium rounded-full ${variants[variant]} ${sizes[size]} ${className}`}>
       {children}
     </span>
   );

@@ -27,7 +27,7 @@ export default function DiscoverAdvocates() {
         <div className="px-4 py-4 space-y-4">
           <Card>
             <div className="flex items-start gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-primary-100 flex items-center justify-center text-primary-700 font-bold text-xl flex-shrink-0">
+              <div className="w-14 h-14 rounded-2xl bg-navy-100 flex items-center justify-center text-navy-800 font-bold text-xl flex-shrink-0">
                 {adv.name.split(' ').slice(-1)[0][0]}
               </div>
               <div className="flex-1">
@@ -74,10 +74,13 @@ export default function DiscoverAdvocates() {
           </Card>
         </div>
 
-        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-4 bg-white border-t border-gray-100">
+        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md p-4 bg-white border-t border-gray-100 safe-bottom shadow-[0_-4px_24px_rgba(15,14,58,0.06)]">
+          <p className="text-[10px] text-center text-gray-500 mb-2">
+            Request is reviewed by the advocate — same as LexDesk CRM queue.
+          </p>
           <div className="grid grid-cols-2 gap-3">
-            <Button variant="outline" fullWidth>Send Request</Button>
-            <Button fullWidth disabled={!adv.available}>Book Consultation</Button>
+            <Button variant="outline" fullWidth>Send request</Button>
+            <Button fullWidth disabled={!adv.available}>Book consultation</Button>
           </div>
         </div>
       </div>
@@ -89,14 +92,14 @@ export default function DiscoverAdvocates() {
       <Header title="Find an Advocate" showBack />
 
       <div className="px-4 py-4 space-y-4">
-        <Card className="bg-slate-50 border-slate-100">
+        <Card className="bg-navy-50 border-navy-100">
           <div className="flex gap-3">
-            <div className="w-8 h-8 rounded-lg bg-slate-200/80 flex items-center justify-center flex-shrink-0">
-              <Info size={16} className="text-slate-600" />
+            <div className="w-8 h-8 rounded-lg bg-navy-100 flex items-center justify-center flex-shrink-0">
+              <Info size={16} className="text-navy-700" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-slate-800">Informational listings only</p>
-              <p className="text-[11px] text-slate-600 leading-snug mt-1">
+              <p className="text-xs font-semibold text-navy-900">Informational listings only</p>
+              <p className="text-[11px] text-navy-800/80 leading-snug mt-1">
                 This directory shows neutral professional details (name, court, practice areas, languages). It does not rank, rate, or promote advocates. Under the{' '}
                 <span className="font-medium">Advocates Act, 1961</span> and{' '}
                 <span className="font-medium">Bar Council of India Rule 36</span>, advocates must not solicit work or advertise; client choice should be based on your own diligence and direct discussion.
@@ -112,7 +115,7 @@ export default function DiscoverAdvocates() {
             onChange={e => setSearch(e.target.value)}
             type="text"
             placeholder="Search by name or city..."
-            className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/30 focus:border-navy-600"
           />
         </div>
 
@@ -123,7 +126,7 @@ export default function DiscoverAdvocates() {
               onClick={() => setActiveSpec(spec)}
               className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                 activeSpec === spec
-                  ? 'bg-primary-600 text-white border-primary-600'
+                  ? 'bg-navy-700 text-white border-navy-700'
                   : 'bg-white text-gray-600 border-gray-200'
               }`}
             >
@@ -138,7 +141,7 @@ export default function DiscoverAdvocates() {
           {filtered.map(adv => (
             <Card key={adv.id} onClick={() => setSelected(adv.id)}>
               <div className="flex items-start gap-3">
-                <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center text-primary-700 font-bold text-base flex-shrink-0">
+                <div className="w-12 h-12 rounded-xl bg-navy-100 flex items-center justify-center text-navy-800 font-bold text-base flex-shrink-0">
                   {adv.name.split(' ').slice(-1)[0][0]}
                 </div>
                 <div className="flex-1 min-w-0">

@@ -66,7 +66,7 @@ export default function CNRLookup() {
                 onChange={e => { setCnr(e.target.value.toUpperCase()); setError(''); }}
                 placeholder="e.g. TNCH010012342024"
                 maxLength={20}
-                className="w-full px-3 py-3 bg-gray-50 border border-gray-200 rounded-xl font-mono text-sm uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-3 py-3 bg-gray-50 border border-gray-200 rounded-xl font-mono text-sm uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-navy-500/30 focus:border-navy-600 focus:border-transparent"
               />
               {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
             </div>
@@ -85,7 +85,7 @@ export default function CNRLookup() {
         {loading && (
           <Card>
             <div className="flex flex-col items-center py-6 gap-3">
-              <RefreshCw size={28} className="text-primary-500 animate-spin" />
+              <RefreshCw size={28} className="text-navy-700 animate-spin" />
               <p className="text-sm font-medium text-gray-600">Connecting to eCourts portal...</p>
               <p className="text-xs text-gray-400">This may take a few seconds</p>
             </div>
@@ -137,7 +137,7 @@ export default function CNRLookup() {
                   <div>
                     <p className="text-xs text-gray-400">Petitioner</p>
                     <p className="text-xs font-medium text-gray-700">{result.petitioner.name}</p>
-                    <p className="text-xs text-primary-500">{result.petitioner.advocate}</p>
+                    <p className="text-xs text-navy-700">{result.petitioner.advocate}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-400">Respondent</p>

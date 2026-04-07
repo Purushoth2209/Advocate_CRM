@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ClientExperienceProvider } from './context/ClientExperienceContext';
 import BottomNav from './components/layout/BottomNav';
 import Dashboard from './pages/Dashboard';
 import CaseList from './pages/cases/CaseList';
@@ -12,6 +13,7 @@ import Profile from './pages/Profile';
 export default function App() {
   return (
     <BrowserRouter>
+      <ClientExperienceProvider>
       <div className="min-h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative">
         <div className="flex-1">
           <Routes>
@@ -31,6 +33,7 @@ export default function App() {
         </div>
         <BottomNav />
       </div>
+      </ClientExperienceProvider>
     </BrowserRouter>
   );
 }

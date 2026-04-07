@@ -1,6 +1,6 @@
 export default function Button({ children, variant = 'primary', size = 'md', onClick, className = '', disabled = false, fullWidth = false }) {
   const variants = {
-    primary: 'bg-primary-600 hover:bg-primary-700 text-white shadow-sm',
+    primary: 'bg-navy-700 hover:bg-navy-800 text-white shadow-sm',
     secondary: 'bg-gray-100 hover:bg-gray-200 text-gray-700',
     outline: 'border border-gray-200 hover:bg-gray-50 text-gray-700 bg-white',
     danger: 'bg-red-500 hover:bg-red-600 text-white',

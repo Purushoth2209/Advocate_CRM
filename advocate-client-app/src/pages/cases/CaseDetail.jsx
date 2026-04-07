@@ -5,7 +5,7 @@ import Header from '../../components/layout/Header';
 import Card from '../../components/ui/Card';
 import { StatusBadge, Badge } from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
-import { mockCases } from '../../data/mockData';
+import { useClientAppData } from '../../context/ClientExperienceContext';
 
 function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -20,11 +20,25 @@ const tabs = ['Overview', 'Timeline', 'Documents', 'Chat', 'Hearings'];
 export default function CaseDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { cases } = useClientAppData();
   const [activeTab, setActiveTab] = useState('Overview');
   const [message, setMessage] = useState('');
 
-  const caseData = mockCases.find(c => c.id === id);
-  if (!caseData) return <div className="p-4 text-center text-gray-500">Case not found</div>;
+  const caseData = cases.find(c => c.id === id);
+  if (!caseData) {
+    return (
+      <div className="flex flex-col min-h-screen bg-gray-50 p-4 pb-24">
+        <Header title="Case" showBack />
+        <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
+          <p className="text-sm font-medium text-gray-700">Case not found</p>
+          <p className="text-xs text-gray-500 mt-2">It may not exist in preview mode, or you have no cases yet.</p>
+          <Button className="mt-6" onClick={() => navigate('/cases')}>
+            Back to cases
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 pb-20">
@@ -44,7 +58,7 @@ export default function CaseDetail() {
         </div>
         <div className="mt-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 text-xs font-bold">
+            <div className="w-7 h-7 rounded-full bg-navy-100 flex items-center justify-center text-navy-800 text-xs font-bold">
               {caseData.advocate.split(' ').pop()[0]}
             </div>
             <div>
@@ -54,7 +68,7 @@ export default function CaseDetail() {
           </div>
           <button
             onClick={() => navigate('/cases/book-appointment')}
-            className="text-xs bg-primary-50 text-primary-600 font-medium px-3 py-1.5 rounded-lg flex items-center gap-1"
+            className="text-xs bg-navy-100 text-navy-800 font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1"
           >
             <Calendar size={12} />
             Book Appointment
@@ -71,7 +85,7 @@ export default function CaseDetail() {
               onClick={() => setActiveTab(tab)}
               className={`flex-shrink-0 py-3 px-3 text-xs font-medium border-b-2 transition-colors ${
                 activeTab === tab
-                  ? 'border-primary-600 text-primary-600'
+                  ? 'border-navy-700 text-navy-800'
                   : 'border-transparent text-gray-500'
               }`}
             >
@@ -120,11 +134,11 @@ export default function CaseDetail() {
               <div key={idx} className="flex gap-3">
                 <div className="flex flex-col items-center">
                   <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    event.type === 'upcoming' ? 'bg-blue-100' : 'bg-primary-100'
+                    event.type === 'upcoming' ? 'bg-blue-100' : 'bg-navy-100'
                   }`}>
                     {event.type === 'upcoming'
                       ? <Circle size={14} className="text-blue-500" />
-                      : <CheckCircle size={14} className="text-primary-600" />
+                      : <CheckCircle size={14} className="text-navy-700" />
                     }
                   </div>
                   {idx < caseData.timeline.length - 1 && (
@@ -167,7 +181,7 @@ export default function CaseDetail() {
                       <p className="text-sm font-medium text-gray-800 truncate">{doc.name}</p>
                       <p className="text-xs text-gray-400 mt-0.5">
                         {doc.uploadedBy === 'You' ? (
-                          <span className="text-primary-600 font-medium">You</span>
+                          <span className="text-navy-700 font-medium">You</span>
                         ) : doc.uploadedBy} · {formatDate(doc.uploadedAt)} · {doc.size}
                       </p>
                       <Badge variant="default" size="xs">{doc.category}</Badge>
@@ -197,7 +211,7 @@ export default function CaseDetail() {
                     )}
                     <div className={`px-3 py-2 rounded-2xl text-sm ${
                       msg.sender === 'client'
-                        ? `${msg.isInstruction ? 'bg-amber-500' : 'bg-primary-600'} text-white rounded-br-sm`
+                        ? `${msg.isInstruction ? 'bg-amber-500' : 'bg-navy-700'} text-white rounded-br-sm`
                         : 'bg-white border border-gray-100 text-gray-700 rounded-bl-sm'
                     }`}>
                       {msg.text}
@@ -219,7 +233,7 @@ export default function CaseDetail() {
                 placeholder="Type a message or instruction..."
                 className="flex-1 bg-gray-50 rounded-xl px-3 py-2.5 text-sm outline-none border border-gray-100"
               />
-              <button className="p-2.5 bg-primary-600 rounded-xl text-white hover:bg-primary-700">
+              <button type="button" className="p-2.5 bg-navy-700 rounded-xl text-white hover:bg-navy-800">
                 <Send size={16} />
               </button>
             </div>

@@ -93,6 +93,34 @@ export const mockCases = [
   },
 ];
 
+/** Client profile + advocate links (mirrors CRM client–advocate mapping) */
+export const mockClientProfile = {
+  displayName: 'Ramesh Kumar',
+  phone: '+91 98765 43210',
+  clientRef: 'CLT-2024-001',
+  firmLabel: 'Sharma & Associates',
+  advocateLinks: [
+    {
+      advocateId: 'adv-001',
+      name: 'Adv. Priya Sharma',
+      city: 'Chennai',
+      court: 'Madras High Court',
+      relationship: 'retained',
+      since: '2024-03-01',
+      source: 'invite',
+    },
+    {
+      advocateId: 'adv-002',
+      name: 'Adv. Rajesh Verma',
+      city: 'Delhi',
+      court: 'Delhi High Court',
+      relationship: 'retained',
+      since: '2023-08-12',
+      source: 'directory',
+    },
+  ],
+};
+
 export const mockAdvocates = [
   {
     id: 'adv-001',
@@ -151,4 +179,26 @@ export const mockNotifications = [
   { id: 'notif-004', type: 'message', title: 'New Message', message: 'Adv. Priya Sharma sent you a message regarding Kumar vs State of TN.', time: '2 days ago', read: true, caseId: 'case-001' },
   { id: 'notif-005', type: 'document', title: 'Document Uploaded', message: 'Adv. Rajesh Verma uploaded "Court Notice.pdf" to Sharma vs MCD.', time: '3 days ago', read: true, caseId: 'case-002' },
   { id: 'notif-006', type: 'billing', title: 'Follow up on fees', message: 'Your advocate may follow up on Sharma vs MCD fee matters directly.', time: '3 days ago', read: false, caseId: 'case-002' },
+];
+
+/** Fresh-user preview: no cases, no linked advocates (empty states + onboarding-style copy) */
+export const mockClientProfileFresh = {
+  displayName: 'You',
+  phone: 'Add phone in profile',
+  clientRef: '—',
+  firmLabel: null,
+  advocateLinks: [],
+};
+
+export const mockCasesFresh = [];
+
+export const mockNotificationsFresh = [
+  {
+    id: 'notif-welcome',
+    type: 'update',
+    title: 'Welcome to LexDesk Client',
+    message: 'Discover an advocate or enter a code from your lawyer to link your account and see cases here.',
+    time: 'Just now',
+    read: false,
+  },
 ];
