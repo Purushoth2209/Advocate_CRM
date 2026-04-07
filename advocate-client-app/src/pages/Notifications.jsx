@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Bell, Gavel, CreditCard, FileText, MessageSquare, ChevronRight } from 'lucide-react';
+import { Bell, Gavel, FileText, MessageSquare, Wallet } from 'lucide-react';
 import Header from '../components/layout/Header';
 import { mockNotifications } from '../data/mockData';
 
@@ -7,7 +7,7 @@ function timeAgo(t) { return t; }
 
 const typeConfig = {
   hearing: { icon: Gavel, color: 'bg-blue-50 text-blue-600' },
-  payment: { icon: CreditCard, color: 'bg-amber-50 text-amber-600' },
+  billing: { icon: Wallet, color: 'bg-amber-50 text-amber-600' },
   update: { icon: Bell, color: 'bg-purple-50 text-purple-600' },
   message: { icon: MessageSquare, color: 'bg-green-50 text-green-600' },
   document: { icon: FileText, color: 'bg-indigo-50 text-indigo-600' },
@@ -20,7 +20,6 @@ export default function Notifications() {
 
   const handleTap = (notif) => {
     if (notif.caseId) navigate(`/cases/${notif.caseId}`);
-    else if (notif.invoiceId) navigate(`/payments/invoice/${notif.invoiceId}`);
   };
 
   const NotifItem = ({ notif }) => {

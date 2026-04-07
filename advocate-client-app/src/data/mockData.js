@@ -93,116 +93,6 @@ export const mockCases = [
   },
 ];
 
-export const mockInvoices = [
-  {
-    id: 'inv-001',
-    invoiceNo: 'INV-2026-001',
-    caseId: 'case-001',
-    caseTitle: 'Kumar vs State of TN',
-    advocate: 'Adv. Priya Sharma',
-    dateRaised: '2026-03-30',
-    dueDate: '2026-04-10',
-    status: 'pending',
-    items: [
-      { description: 'Court Appearance - March 28', date: '2026-03-28', amount: 3000 },
-      { description: 'Documentation & Drafting', date: '2026-03-25', amount: 1500 },
-      { description: 'Consultation (1 hr)', date: '2026-03-20', amount: 2000 },
-      { description: 'Miscellaneous Expenses', date: '2026-03-28', amount: 500 },
-    ],
-    subtotal: 7000,
-    gst: 1260,
-    total: 8260,
-  },
-  {
-    id: 'inv-002',
-    invoiceNo: 'INV-2026-002',
-    caseId: 'case-002',
-    caseTitle: 'Sharma vs MCD',
-    advocate: 'Adv. Rajesh Verma',
-    dateRaised: '2026-03-15',
-    dueDate: '2026-03-25',
-    status: 'overdue',
-    items: [
-      { description: 'Arguments Hearing - March 10', date: '2026-03-10', amount: 5000 },
-      { description: 'Brief Preparation', date: '2026-03-08', amount: 3000 },
-    ],
-    subtotal: 8000,
-    gst: 1440,
-    total: 9440,
-  },
-  {
-    id: 'inv-003',
-    invoiceNo: 'INV-2026-003',
-    caseId: 'case-001',
-    caseTitle: 'Kumar vs State of TN',
-    advocate: 'Adv. Priya Sharma',
-    dateRaised: '2026-02-28',
-    dueDate: '2026-03-10',
-    status: 'paid',
-    items: [
-      { description: 'Court Appearance - Feb 25', date: '2026-02-25', amount: 3000 },
-      { description: 'Filing Charges', date: '2026-02-20', amount: 800 },
-    ],
-    subtotal: 3800,
-    gst: 684,
-    total: 4484,
-    paidOn: '2026-03-05',
-    paymentMethod: 'UPI',
-    referenceId: 'UPI2026030512345',
-  },
-  {
-    id: 'inv-004',
-    invoiceNo: 'INV-2025-012',
-    caseId: 'case-001',
-    caseTitle: 'Kumar vs State of TN',
-    advocate: 'Adv. Priya Sharma',
-    dateRaised: '2025-11-15',
-    dueDate: '2025-11-30',
-    status: 'paid',
-    items: [
-      { description: 'Retainer - Nov 2025', date: '2025-11-01', amount: 10000 },
-    ],
-    subtotal: 10000,
-    gst: 1800,
-    total: 11800,
-    paidOn: '2025-11-20',
-    paymentMethod: 'Net Banking',
-    referenceId: 'NEFT20251120XYZ',
-  },
-];
-
-export const mockRetainer = {
-  caseId: 'case-001',
-  caseTitle: 'Kumar vs State of TN',
-  advocate: 'Adv. Priya Sharma',
-  totalRetainer: 50000,
-  utilized: 31284,
-  remaining: 18716,
-  history: [
-    { date: '2025-11-20', description: 'Initial Retainer Paid', amount: 20000, type: 'credit' },
-    { date: '2025-12-15', description: 'Court appearances (Nov)', amount: -8000, type: 'debit' },
-    { date: '2026-01-10', description: 'Top-up Payment', amount: 15000, type: 'credit' },
-    { date: '2026-01-30', description: 'Documentation & research', amount: -5500, type: 'debit' },
-    { date: '2026-02-20', description: 'Top-up Payment', amount: 15000, type: 'credit' },
-    { date: '2026-03-05', description: 'Court appearances (Feb)', amount: -9284, type: 'debit' },
-    { date: '2026-03-28', description: 'Consultation sessions', amount: -8500, type: 'debit' },
-  ],
-};
-
-export const mockInstallments = [
-  { id: 'inst-001', label: 'Installment 1', amount: 15000, dueDate: '2026-02-01', status: 'paid', paidOn: '2026-01-30' },
-  { id: 'inst-002', label: 'Installment 2', amount: 15000, dueDate: '2026-03-01', status: 'paid', paidOn: '2026-02-28' },
-  { id: 'inst-003', label: 'Installment 3', amount: 15000, dueDate: '2026-04-15', status: 'due', paidOn: null },
-  { id: 'inst-004', label: 'Installment 4', amount: 15000, dueDate: '2026-05-15', status: 'upcoming', paidOn: null },
-];
-
-export const mockExpenses = [
-  { id: 'exp-001', category: 'Court Filing Fee', description: 'Filing fee for writ petition', date: '2026-03-28', amount: 500, status: 'approved', receipt: true },
-  { id: 'exp-002', category: 'Travel', description: 'Travel to court for hearing', date: '2026-03-28', amount: 350, status: 'pending', receipt: false },
-  { id: 'exp-003', category: 'Printing & Stationery', description: 'Printed 50 pages of case documents', date: '2026-03-25', amount: 250, status: 'approved', receipt: true },
-  { id: 'exp-004', category: 'Stamp Duty', description: 'Stamp paper for affidavit', date: '2026-03-10', amount: 1000, status: 'disputed', receipt: true },
-];
-
 export const mockAdvocates = [
   {
     id: 'adv-001',
@@ -211,13 +101,10 @@ export const mockAdvocates = [
     city: 'Chennai',
     court: 'Madras High Court',
     experience: 12,
-    rating: 4.8,
-    reviews: 42,
-    consultationFee: 2000,
+    enrollmentRef: 'TN/1234/2014',
     languages: ['English', 'Tamil', 'Hindi'],
-    bio: 'Senior advocate with 12 years of experience in criminal and property law matters before Madras High Court and district courts.',
+    bio: 'Practices before Madras High Court and subordinate courts. Areas include criminal, property, and consumer matters.',
     available: true,
-    verified: true,
   },
   {
     id: 'adv-002',
@@ -226,13 +113,10 @@ export const mockAdvocates = [
     city: 'Delhi',
     court: 'Delhi High Court',
     experience: 18,
-    rating: 4.9,
-    reviews: 87,
-    consultationFee: 3000,
+    enrollmentRef: 'D/5678/2008',
     languages: ['English', 'Hindi'],
-    bio: 'Renowned constitutional lawyer with extensive experience in writ petitions and public interest litigation before Delhi HC.',
+    bio: 'Practices before Delhi High Court. Areas include constitutional matters, writ jurisdiction, and civil disputes.',
     available: true,
-    verified: true,
   },
   {
     id: 'adv-003',
@@ -241,13 +125,10 @@ export const mockAdvocates = [
     city: 'Bangalore',
     court: 'Karnataka High Court',
     experience: 8,
-    rating: 4.6,
-    reviews: 31,
-    consultationFee: 1500,
+    enrollmentRef: 'KA/9012/2018',
     languages: ['English', 'Kannada', 'Tamil', 'Malayalam'],
-    bio: 'Specialist in family law with compassionate approach to sensitive cases including divorce, custody, and maintenance.',
+    bio: 'Practices before Karnataka High Court. Areas include matrimonial, custody, and maintenance-related proceedings.',
     available: false,
-    verified: true,
   },
   {
     id: 'adv-004',
@@ -256,28 +137,18 @@ export const mockAdvocates = [
     city: 'Mumbai',
     court: 'Bombay High Court',
     experience: 15,
-    rating: 4.7,
-    reviews: 65,
-    consultationFee: 5000,
+    enrollmentRef: 'MH/3456/2011',
     languages: ['English', 'Hindi', 'Marathi'],
-    bio: 'Corporate law expert handling complex commercial disputes, NCLT matters, and insolvency proceedings.',
+    bio: 'Practices before Bombay High Court and NCLT benches. Areas include company law, insolvency, and commercial litigation.',
     available: true,
-    verified: true,
   },
 ];
 
 export const mockNotifications = [
   { id: 'notif-001', type: 'hearing', title: 'Hearing Tomorrow', message: 'Your hearing for Kumar vs State of TN is tomorrow at 11:00 AM, Chennai Civil Court.', time: '2 hours ago', read: false, caseId: 'case-001' },
-  { id: 'notif-002', type: 'payment', title: 'Invoice Due Soon', message: 'Invoice INV-2026-001 of ₹8,260 is due on April 10.', time: '5 hours ago', read: false, invoiceId: 'inv-001' },
+  { id: 'notif-002', type: 'billing', title: 'Fee statement shared', message: 'A fee statement for Kumar vs State of TN was shared. Coordinate with your advocate outside the app.', time: '5 hours ago', read: false, caseId: 'case-001' },
   { id: 'notif-003', type: 'update', title: 'Case Status Updated', message: 'Adv. Priya Sharma updated your case status to "Hearing Scheduled".', time: '1 day ago', read: true, caseId: 'case-001' },
   { id: 'notif-004', type: 'message', title: 'New Message', message: 'Adv. Priya Sharma sent you a message regarding Kumar vs State of TN.', time: '2 days ago', read: true, caseId: 'case-001' },
   { id: 'notif-005', type: 'document', title: 'Document Uploaded', message: 'Adv. Rajesh Verma uploaded "Court Notice.pdf" to Sharma vs MCD.', time: '3 days ago', read: true, caseId: 'case-002' },
-  { id: 'notif-006', type: 'payment', title: 'Payment Overdue', message: 'Invoice INV-2026-002 of ₹9,440 is overdue by 9 days.', time: '3 days ago', read: false, invoiceId: 'inv-002' },
-];
-
-export const mockPaymentHistory = [
-  { id: 'pay-001', date: '2026-03-05', invoiceNo: 'INV-2026-003', caseTitle: 'Kumar vs State of TN', amount: 4484, method: 'UPI', status: 'success', ref: 'UPI2026030512345' },
-  { id: 'pay-002', date: '2025-11-20', invoiceNo: 'INV-2025-012', caseTitle: 'Kumar vs State of TN', amount: 11800, method: 'Net Banking', status: 'success', ref: 'NEFT20251120XYZ' },
-  { id: 'pay-003', date: '2025-09-10', invoiceNo: 'INV-2025-008', caseTitle: 'Sharma vs MCD', amount: 6500, method: 'UPI', status: 'success', ref: 'UPI2025091087654' },
-  { id: 'pay-004', date: '2025-07-05', invoiceNo: 'INV-2025-005', caseTitle: 'Kumar vs State of TN', amount: 3500, method: 'Card', status: 'success', ref: 'CARD20250705ABCD' },
+  { id: 'notif-006', type: 'billing', title: 'Follow up on fees', message: 'Your advocate may follow up on Sharma vs MCD fee matters directly.', time: '3 days ago', read: false, caseId: 'case-002' },
 ];

@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Search, Star, MapPin, ChevronRight, Check } from 'lucide-react';
+import { Search, MapPin, ChevronRight, Info } from 'lucide-react';
 import Header from '../../components/layout/Header';
 import Card from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
@@ -9,12 +8,7 @@ import { mockAdvocates } from '../../data/mockData';
 
 const specializations = ['All', 'Criminal', 'Property', 'Family', 'Corporate', 'Constitutional'];
 
-function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
-}
-
 export default function DiscoverAdvocates() {
-  const navigate = useNavigate();
   const [activeSpec, setActiveSpec] = useState('All');
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
@@ -31,36 +25,26 @@ export default function DiscoverAdvocates() {
       <div className="flex flex-col min-h-screen bg-gray-50 pb-24">
         <Header title={adv.name} showBack />
         <div className="px-4 py-4 space-y-4">
-          {/* Profile Header */}
           <Card>
             <div className="flex items-start gap-4">
               <div className="w-14 h-14 rounded-2xl bg-primary-100 flex items-center justify-center text-primary-700 font-bold text-xl flex-shrink-0">
                 {adv.name.split(' ').slice(-1)[0][0]}
               </div>
               <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <h2 className="text-base font-bold text-gray-900">{adv.name}</h2>
-                  {adv.verified && (
-                    <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-                      <Check size={10} className="text-white" />
-                    </div>
-                  )}
-                </div>
+                <h2 className="text-base font-bold text-gray-900">{adv.name}</h2>
                 <div className="flex items-center gap-1 mt-1">
                   <MapPin size={11} className="text-gray-400" />
                   <p className="text-xs text-gray-500">{adv.city} · {adv.court}</p>
                 </div>
-                <div className="flex items-center gap-1 mt-1">
-                  <Star size={11} className="text-yellow-400 fill-yellow-400" />
-                  <span className="text-xs font-semibold text-gray-700">{adv.rating}</span>
-                  <span className="text-xs text-gray-400">({adv.reviews} reviews)</span>
-                </div>
+                {adv.enrollmentRef && (
+                  <p className="text-[10px] text-gray-400 mt-1.5">Enrollment: {adv.enrollmentRef}</p>
+                )}
               </div>
             </div>
           </Card>
 
           <Card>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Specialization</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Practice areas</p>
             <div className="flex flex-wrap gap-1.5">
               {adv.specialization.map(s => (
                 <Badge key={s} variant="indigo">{s}</Badge>
@@ -69,20 +53,20 @@ export default function DiscoverAdvocates() {
           </Card>
 
           <Card>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">About</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Professional details</p>
             <p className="text-sm text-gray-600 leading-relaxed">{adv.bio}</p>
           </Card>
 
           <Card>
             {[
-              { label: 'Experience', value: `${adv.experience} years` },
+              { label: 'Years in practice', value: `${adv.experience}` },
               { label: 'Languages', value: adv.languages.join(', ') },
-              { label: 'Consultation Fee', value: formatCurrency(adv.consultationFee) },
-              { label: 'Availability', value: adv.available ? 'Available' : 'Unavailable' },
+              { label: 'Professional fees', value: 'Agreed directly with the advocate' },
+              { label: 'Availability', value: adv.available ? 'May accept new matters' : 'Currently unavailable' },
             ].map(row => (
-              <div key={row.label} className="flex justify-between py-2 border-b border-gray-50 last:border-0">
-                <span className="text-xs text-gray-500">{row.label}</span>
-                <span className={`text-xs font-medium ${row.label === 'Availability' ? (adv.available ? 'text-green-600' : 'text-red-500') : 'text-gray-800'}`}>
+              <div key={row.label} className="flex justify-between py-2 border-b border-gray-50 last:border-0 gap-3">
+                <span className="text-xs text-gray-500 flex-shrink-0">{row.label}</span>
+                <span className={`text-xs font-medium text-right ${row.label === 'Availability' ? (adv.available ? 'text-gray-800' : 'text-red-600') : 'text-gray-800'}`}>
                   {row.value}
                 </span>
               </div>
@@ -105,7 +89,22 @@ export default function DiscoverAdvocates() {
       <Header title="Find an Advocate" showBack />
 
       <div className="px-4 py-4 space-y-4">
-        {/* Search */}
+        <Card className="bg-slate-50 border-slate-100">
+          <div className="flex gap-3">
+            <div className="w-8 h-8 rounded-lg bg-slate-200/80 flex items-center justify-center flex-shrink-0">
+              <Info size={16} className="text-slate-600" />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-slate-800">Informational listings only</p>
+              <p className="text-[11px] text-slate-600 leading-snug mt-1">
+                This directory shows neutral professional details (name, court, practice areas, languages). It does not rank, rate, or promote advocates. Under the{' '}
+                <span className="font-medium">Advocates Act, 1961</span> and{' '}
+                <span className="font-medium">Bar Council of India Rule 36</span>, advocates must not solicit work or advertise; client choice should be based on your own diligence and direct discussion.
+              </p>
+            </div>
+          </div>
+        </Card>
+
         <div className="relative">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -117,7 +116,6 @@ export default function DiscoverAdvocates() {
           />
         </div>
 
-        {/* Spec Filter */}
         <div className="flex gap-2 overflow-x-auto pb-1">
           {specializations.map(spec => (
             <button
@@ -134,9 +132,8 @@ export default function DiscoverAdvocates() {
           ))}
         </div>
 
-        <p className="text-xs text-gray-400">{filtered.length} advocates found</p>
+        <p className="text-xs text-gray-400">{filtered.length} advocate{filtered.length === 1 ? '' : 's'} listed</p>
 
-        {/* Advocate Cards */}
         <div className="space-y-3">
           {filtered.map(adv => (
             <Card key={adv.id} onClick={() => setSelected(adv.id)}>
@@ -146,19 +143,12 @@ export default function DiscoverAdvocates() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-semibold text-gray-900">{adv.name}</p>
-                      {adv.verified && (
-                        <div className="w-3.5 h-3.5 bg-blue-500 rounded-full flex items-center justify-center">
-                          <Check size={8} className="text-white" />
-                        </div>
-                      )}
-                    </div>
+                    <p className="text-sm font-semibold text-gray-900">{adv.name}</p>
                     <ChevronRight size={14} className="text-gray-400" />
                   </div>
                   <div className="flex items-center gap-1 mt-0.5">
                     <MapPin size={10} className="text-gray-400" />
-                    <p className="text-xs text-gray-500">{adv.city}</p>
+                    <p className="text-xs text-gray-500">{adv.city} · {adv.court}</p>
                   </div>
                   <div className="flex flex-wrap gap-1 mt-2">
                     {adv.specialization.slice(0, 2).map(s => (
@@ -166,17 +156,10 @@ export default function DiscoverAdvocates() {
                     ))}
                   </div>
                   <div className="flex items-center justify-between mt-2">
-                    <div className="flex items-center gap-1">
-                      <Star size={11} className="text-yellow-400 fill-yellow-400" />
-                      <span className="text-xs font-semibold">{adv.rating}</span>
-                      <span className="text-xs text-gray-400">({adv.reviews})</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${adv.available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                        {adv.available ? 'Available' : 'Busy'}
-                      </span>
-                      <span className="text-xs font-semibold text-gray-700">{formatCurrency(adv.consultationFee)}/hr</span>
-                    </div>
+                    <span className="text-[10px] text-gray-500">{adv.experience} yrs practice</span>
+                    <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${adv.available ? 'bg-slate-100 text-slate-600' : 'bg-red-50 text-red-700'}`}>
+                      {adv.available ? 'May accept matters' : 'Unavailable'}
+                    </span>
                   </div>
                 </div>
               </div>

@@ -1,0 +1,12 @@
+{
+  "name": "lawtech",
+  "private": true,
+  "description": "Monorepo root — client app lives in advocate-client-app/",
+  "scripts": {
+    "start": "npm run dev --prefix advocate-client-app",
+    "dev": "npm run dev --prefix advocate-client-app",
+    "build": "npm run build --prefix advocate-client-app",
+    "preview": "npm run preview --prefix advocate-client-app",
+    "lint": "npm run lint --prefix advocate-client-app"
+  }
+}

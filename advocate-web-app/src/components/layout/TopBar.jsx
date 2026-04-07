@@ -1,0 +1,90 @@
+import { Bell, Search, Plus } from 'lucide-react';
+import { useState } from 'react';
+import { useLocation, Link } from 'react-router-dom';
+import { mockNotifications } from '../../data/mockData';
+
+const pageTitles = {
+  '/': 'Dashboard',
+  '/clients': 'Clients',
+  '/cases': 'Cases',
+  '/documents': 'Documents',
+  '/appointments': 'Appointments',
+  '/chat': 'Chat',
+  '/team': 'Team & Users',
+  '/settings': 'Settings',
+};
+
+export default function TopBar() {
+  const location = useLocation();
+  const [notifOpen, setNotifOpen] = useState(false);
+  const unreadCount = mockNotifications.filter(n => !n.read).length;
+
+  const title = Object.entries(pageTitles).find(([path]) =>
+    path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
+  )?.[1] ?? 'LexDesk';
+
+  return (
+    <header className="fixed top-0 left-60 right-0 h-14 bg-white border-b border-gray-100 flex items-center justify-between px-6 z-20">
+      <h1 className="text-base font-semibold text-gray-900">{title}</h1>
+
+      <div className="flex items-center gap-3">
+        {/* Search */}
+        <div className="relative hidden md:block">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search clients, cases..."
+            className="pl-9 pr-4 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg w-52 focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-500"
+          />
+        </div>
+
+        {/* Notifications */}
+        <div className="relative">
+          <button
+            onClick={() => setNotifOpen(!notifOpen)}
+            className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <Bell size={18} className="text-gray-600" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+
+          {notifOpen && (
+            <div className="absolute right-0 top-10 w-80 bg-white rounded-xl shadow-lg border border-gray-100 z-50">
+              <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                <span className="text-sm font-semibold text-gray-900">Notifications</span>
+                <button className="text-xs text-navy-600 font-medium">Mark all read</button>
+              </div>
+              <div className="max-h-80 overflow-y-auto">
+                {mockNotifications.map(n => (
+                  <div
+                    key={n.id}
+                    className={`px-4 py-3 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors ${!n.read ? 'bg-navy-50' : ''}`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${!n.read ? 'bg-navy-600' : 'bg-gray-300'}`} />
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-gray-900">{n.title}</p>
+                        <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.message}</p>
+                        <p className="text-xs text-gray-400 mt-1">{n.time}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Quick add */}
+        <Link to="/clients/new" className="btn-primary text-xs py-1.5 px-3">
+          <Plus size={14} />
+          New Client
+        </Link>
+      </div>
+    </header>
+  );
+}

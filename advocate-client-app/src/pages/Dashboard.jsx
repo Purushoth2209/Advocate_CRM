@@ -1,24 +1,19 @@
 import { useNavigate } from 'react-router-dom';
-import { Scale, Briefcase, CreditCard, Calendar, ChevronRight, TrendingUp, Clock } from 'lucide-react';
+import { Scale, Briefcase, Calendar, ChevronRight, TrendingUp, Clock } from 'lucide-react';
 import Header from '../components/layout/Header';
 import Card from '../components/ui/Card';
 import { StatusBadge } from '../components/ui/Badge';
-import { mockCases, mockInvoices, mockNotifications } from '../data/mockData';
+import { mockCases, mockNotifications } from '../data/mockData';
 
 function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
-}
-
 export default function Dashboard() {
   const navigate = useNavigate();
   const activeCases = mockCases.length;
-  const pendingInvoices = mockInvoices.filter(i => i.status === 'pending' || i.status === 'overdue');
-  const totalPending = pendingInvoices.reduce((s, i) => s + i.total, 0);
   const unread = mockNotifications.filter(n => !n.read).length;
+  const upcomingHearings = mockCases.filter(c => c.nextHearing).length;
   const nextHearing = mockCases
     .filter(c => c.nextHearing)
     .sort((a, b) => new Date(a.nextHearing) - new Date(b.nextHearing))[0];
@@ -43,7 +38,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-3 gap-3">
           {[
             { label: 'Active Cases', value: activeCases, icon: Briefcase, color: 'bg-white/20' },
-            { label: 'Pending Dues', value: formatCurrency(totalPending), icon: CreditCard, color: 'bg-white/20' },
+            { label: 'Upcoming', value: upcomingHearings, icon: Calendar, color: 'bg-white/20' },
             { label: 'Unread Alerts', value: unread, icon: TrendingUp, color: 'bg-white/20' },
           ].map(stat => (
             <div key={stat.label} className={`${stat.color} rounded-xl p-3`}>
@@ -82,7 +77,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-4 gap-2">
             {[
               { label: 'My Cases', icon: Briefcase, path: '/cases', color: 'bg-indigo-50 text-indigo-600' },
-              { label: 'Payments', icon: CreditCard, path: '/payments', color: 'bg-green-50 text-green-600' },
+              { label: 'CNR', icon: Scale, path: '/cases/cnr', color: 'bg-teal-50 text-teal-600' },
               { label: 'Schedule', icon: Calendar, path: '/cases', color: 'bg-orange-50 text-orange-600' },
               { label: 'Find Advocate', icon: Scale, path: '/cases/discover', color: 'bg-purple-50 text-purple-600' },
             ].map(action => (
@@ -127,33 +122,6 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
-
-        {/* Pending Invoices */}
-        {pendingInvoices.length > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-700">Pending Payments</h3>
-              <button onClick={() => navigate('/payments')} className="text-xs text-primary-600 font-medium">View All</button>
-            </div>
-            <div className="space-y-3">
-              {pendingInvoices.map(inv => (
-                <Card key={inv.id} onClick={() => navigate(`/payments/invoice/${inv.id}`)}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-gray-500">{inv.invoiceNo} · {inv.caseTitle}</p>
-                      <p className="text-base font-bold text-gray-900 mt-0.5">{formatCurrency(inv.total)}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">Due: {formatDate(inv.dueDate)}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <StatusBadge status={inv.status} />
-                      <ChevronRight size={16} className="text-gray-400" />
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

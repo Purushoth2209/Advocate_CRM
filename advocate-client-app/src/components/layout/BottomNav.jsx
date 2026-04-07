@@ -1,11 +1,10 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Briefcase, CreditCard, Bell, User } from 'lucide-react';
+import { Home, Briefcase, Bell, User } from 'lucide-react';
 import { mockNotifications } from '../../data/mockData';
 
 const tabs = [
   { label: 'Home', icon: Home, path: '/' },
   { label: 'Cases', icon: Briefcase, path: '/cases' },
-  { label: 'Payments', icon: CreditCard, path: '/payments' },
   { label: 'Alerts', icon: Bell, path: '/notifications' },
   { label: 'Profile', icon: User, path: '/profile' },
 ];
