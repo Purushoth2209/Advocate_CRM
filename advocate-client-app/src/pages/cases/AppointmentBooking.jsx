@@ -6,7 +6,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { useClientAppData } from '../../context/ClientExperienceContext';
 import { mockAdvocates } from '../../data/mockData';
-import { showClientPreviewUi } from '../../config/clientPreview';
+import { isClientPreviewEnabled } from '../../config/clientPreview';
 
 const slots = ['9:00 AM', '10:00 AM', '11:00 AM', '2:00 PM', '3:00 PM', '4:00 PM'];
 const days = [
@@ -184,7 +184,7 @@ export default function AppointmentBooking() {
               </button>
             );
           })}
-          {showClientPreviewUi && (
+          {isClientPreviewEnabled() && (
             <p className="text-[10px] text-gray-400 px-1 pt-2">
               Tip: <span className="font-mono">?advocate=adv-001</span> skips this step when deep-linking.
             </p>
