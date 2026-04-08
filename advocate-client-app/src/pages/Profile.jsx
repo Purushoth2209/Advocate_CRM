@@ -2,6 +2,7 @@ import { User, Shield, Bell, HelpCircle, LogOut, ChevronRight, Phone, Link2, Bui
 import Header from '../components/layout/Header';
 import Card from '../components/ui/Card';
 import { useClientAppData } from '../context/ClientExperienceContext';
+import { showClientPreviewUi } from '../config/clientPreview';
 
 const menuItems = [
   { icon: User, label: 'Personal details', desc: 'Name, phone, address', path: '/profile/details' },
@@ -112,9 +113,9 @@ export default function Profile() {
           ))}
         </div>
 
-        {import.meta.env.DEV && (
+        {showClientPreviewUi && (
           <Card className="border-amber-200 bg-amber-50/50">
-            <p className="text-[10px] font-bold text-amber-900 uppercase tracking-wide mb-2">Preview mode (dev)</p>
+            <p className="text-[10px] font-bold text-amber-900 uppercase tracking-wide mb-2">Preview mode</p>
             <p className="text-xs text-amber-900/80 mb-3">
               Switch between a brand-new client (empty home) and a client with cases and linked advocates.
             </p>
