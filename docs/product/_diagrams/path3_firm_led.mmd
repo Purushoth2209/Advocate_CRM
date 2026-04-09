@@ -1,0 +1,10 @@
+flowchart TB
+  C[Client]
+  C --> E[Entry: firm page or firm-designated lead]
+  E --> REQ[Connection / onboard request]
+  REQ --> FA[Firm accepts]
+  FA --> MAT[Matter under firm]
+  MAT --> ASG[Firm assigns lead advocate]
+  ASG --> UI[Client sees: firm identity plus matter lead]
+  ASG --> CH[Firm may reassign advocate on matter]
+  CH --> UI
