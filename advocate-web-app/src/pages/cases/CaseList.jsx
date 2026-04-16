@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Plus, Scale, Calendar, ChevronRight, AlertCircle } from 'lucide-react';
 import { mockCases, mockClients, mockAdvocates, caseStatusOptions, caseTypeOptions } from '../../data/mockData';
+import Tooltip from '../../components/ui/Tooltip';
 
 const statusColors = {
   'Hearing Scheduled': 'bg-blue-100 text-blue-700',
@@ -37,9 +38,11 @@ export default function CaseList() {
           <h2 className="text-lg font-semibold text-gray-900">All Cases</h2>
           <p className="text-sm text-gray-500 mt-0.5">{mockCases.length} total cases</p>
         </div>
-        <Link to="/cases/new" className="btn-primary">
-          <Plus size={16} /> New Case
-        </Link>
+        <Tooltip content="Register a new matter" side="bottom">
+          <Link to="/cases/new" className="btn-primary">
+            <Plus size={16} /> New Case
+          </Link>
+        </Tooltip>
       </div>
 
       {/* Filters */}

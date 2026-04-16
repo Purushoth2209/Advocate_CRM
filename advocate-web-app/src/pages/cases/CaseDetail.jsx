@@ -6,9 +6,10 @@ import {
   MapPin, User, Upload, Lock, Users,
 } from 'lucide-react';
 import {
-  mockCases, mockClients, mockAdvocates, mockDocuments,
+  mockCases, mockClients, mockAdvocates,
   mockAppointments, caseStatusOptions,
 } from '../../data/mockData';
+import { useDocuments } from '../../context/DocumentsContext';
 
 const statusColors = {
   'Hearing Scheduled': 'bg-blue-100 text-blue-700',
@@ -26,6 +27,7 @@ const TABS = ['Overview', 'Hearings', 'Documents', 'Timeline', 'Appointments'];
 export default function CaseDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { documents } = useDocuments();
   const [activeTab, setActiveTab] = useState('Overview');
   const [editStatus, setEditStatus] = useState(false);
   const [addHearingModal, setAddHearingModal] = useState(false);
@@ -41,7 +43,7 @@ export default function CaseDetail() {
 
   const client = mockClients.find(c => c.id === caseData.clientId);
   const advocate = mockAdvocates.find(a => a.id === caseData.assignedAdvocateId);
-  const docs = mockDocuments.filter(d => d.caseId === caseData.id);
+  const docs = documents.filter(d => d.caseId === caseData.id);
   const appointments = mockAppointments.filter(a => a.caseId === caseData.id);
   const daysToHearing = caseData.nextHearing
     ? Math.ceil((new Date(caseData.nextHearing) - new Date()) / (1000 * 60 * 60 * 24))
@@ -51,7 +53,12 @@ export default function CaseDetail() {
     <div className="space-y-5">
       {/* Header */}
       <div className="flex items-start gap-4">
-        <button onClick={() => navigate(-1)} className="btn-secondary px-3 py-2">
+        <button
+          type="button"
+          title="Go back to the previous page"
+          onClick={() => navigate(-1)}
+          className="btn-secondary px-3 py-2"
+        >
           <ArrowLeft size={16} />
         </button>
         <div className="flex-1 min-w-0">
@@ -69,6 +76,8 @@ export default function CaseDetail() {
               </select>
             ) : (
               <button
+                type="button"
+                title="Change case status"
                 onClick={() => setEditStatus(true)}
                 className={`badge text-xs ${statusColors[caseData.status] || 'bg-gray-100 text-gray-600'} cursor-pointer hover:opacity-80`}
               >
@@ -79,7 +88,7 @@ export default function CaseDetail() {
           <p className="text-sm text-gray-500 mt-0.5 font-mono">{caseData.cnr}</p>
         </div>
         <div className="flex gap-2">
-          <Link to={`/chat?client=${client?.id}`} className="btn-secondary">
+          <Link to={`/chat?client=${client?.id}`} className="btn-secondary" title="Open chat with the client on this case">
             <MessageSquare size={15} /> Message Client
           </Link>
         </div>
@@ -181,7 +190,12 @@ export default function CaseDetail() {
           {activeTab === 'Hearings' && (
             <div className="space-y-3">
               <div className="flex justify-end">
-                <button onClick={() => setAddHearingModal(true)} className="btn-primary text-xs">
+                <button
+                  type="button"
+                  title="Record a new hearing"
+                  onClick={() => setAddHearingModal(true)}
+                  className="btn-primary text-xs"
+                >
                   <Plus size={14} /> Add Hearing
                 </button>
               </div>
@@ -218,7 +232,9 @@ export default function CaseDetail() {
           {activeTab === 'Documents' && (
             <div className="space-y-3">
               <div className="flex justify-end">
-                <button className="btn-primary text-xs"><Upload size={14} /> Upload Document</button>
+                <button type="button" className="btn-primary text-xs" title="Use Document Vault to add files (opens from main menu)">
+                  <Upload size={14} /> Upload Document
+                </button>
               </div>
               {docs.length === 0 && <p className="text-sm text-gray-500 text-center py-8">No documents yet.</p>}
               {docs.map(doc => (
@@ -269,7 +285,7 @@ export default function CaseDetail() {
           {activeTab === 'Appointments' && (
             <div className="space-y-3">
               <div className="flex justify-end">
-                <Link to={`/appointments/new?case=${caseData.id}`} className="btn-primary text-xs">
+                <Link to={`/appointments/new?case=${caseData.id}`} className="btn-primary text-xs" title="Book an appointment linked to this case">
                   <Plus size={14} /> Schedule Appointment
                 </Link>
               </div>
@@ -329,8 +345,8 @@ export default function CaseDetail() {
                 <textarea value={newHearing.notes} onChange={e => setNewHearing({...newHearing, notes: e.target.value})} className="input resize-none" rows={2} placeholder="Any notes..." />
               </div>
               <div className="flex gap-3 pt-2">
-                <button onClick={() => setAddHearingModal(false)} className="btn-secondary flex-1 justify-center">Cancel</button>
-                <button onClick={() => setAddHearingModal(false)} className="btn-primary flex-1 justify-center">
+                <button type="button" title="Close without saving" onClick={() => setAddHearingModal(false)} className="btn-secondary flex-1 justify-center">Cancel</button>
+                <button type="button" title="Close modal (demo — not persisted)" onClick={() => setAddHearingModal(false)} className="btn-primary flex-1 justify-center">
                   <Plus size={14} /> Add Hearing
                 </button>
               </div>

@@ -1,11 +1,16 @@
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
-  ArrowLeft, Phone, Mail, MapPin, User, Briefcase, FileText,
+  ArrowLeft, Phone, Mail, MapPin, Briefcase, FileText,
   CalendarDays, MessageSquare, Edit2, Trash2, Plus, Scale,
-  ChevronRight, Clock, Shield,
+  ChevronRight, Download,
 } from 'lucide-react';
-import { mockClients, mockCases, mockDocuments, mockAppointments, mockAdvocates } from '../../data/mockData';
+import { mockClients, mockCases, mockAppointments, mockAdvocates } from '../../data/mockData';
+import { useAuth } from '../../context/AuthContext';
+import { useDocuments } from '../../context/DocumentsContext';
+import DocumentFormModal from '../../components/documents/DocumentFormModal';
+import Tooltip from '../../components/ui/Tooltip';
+import { downloadDocumentPlaceholder } from '../../utils/documentDownload';
 
 const statusColors = {
   'Hearing Scheduled': 'bg-blue-100 text-blue-700',
@@ -20,7 +25,12 @@ const TABS = ['Overview', 'Cases', 'Documents', 'Appointments', 'Notes'];
 export default function ClientDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { documents, addDocument, updateDocument, deleteDocument } = useDocuments();
   const [activeTab, setActiveTab] = useState('Overview');
+  const [docModalOpen, setDocModalOpen] = useState(false);
+  const [editingDoc, setEditingDoc] = useState(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
   const client = mockClients.find(c => c.id === id);
   if (!client) return (
@@ -32,16 +42,45 @@ export default function ClientDetail() {
 
   const advocate = mockAdvocates.find(a => a.id === client.assignedAdvocateId);
   const cases = mockCases.filter(c => c.clientId === client.id);
-  const docs = mockDocuments.filter(d => d.clientId === client.id);
+  const docs = documents.filter(d => d.clientId === client.id);
   const appointments = mockAppointments.filter(a => a.clientId === client.id);
+
+  const caseOptions = cases.map(c => ({ id: c.id, title: c.title }));
+
+  const handleDocumentSave = (payload) => {
+    if (editingDoc) {
+      updateDocument(editingDoc.id, {
+        name: payload.name,
+        category: payload.category,
+        caseId: payload.caseId,
+        visibility: payload.visibility,
+        description: payload.description,
+        type: payload.type,
+      });
+    } else {
+      addDocument({
+        ...payload,
+        uploadedBy: user.id,
+        uploadedByName: user.name,
+        size: '0.1 MB',
+      });
+    }
+    setEditingDoc(null);
+  };
 
   return (
     <div className="space-y-5">
       {/* Back + header */}
       <div className="flex items-start gap-4">
-        <button onClick={() => navigate(-1)} className="btn-secondary px-3 py-2">
-          <ArrowLeft size={16} />
-        </button>
+        <Tooltip content="Go back to the previous page" side="bottom">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="btn-secondary px-3 py-2"
+          >
+            <ArrowLeft size={16} />
+          </button>
+        </Tooltip>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 flex-wrap">
             <h2 className="text-lg font-semibold text-gray-900">{client.name}</h2>
@@ -52,12 +91,16 @@ export default function ClientDetail() {
           <p className="text-sm text-gray-500 mt-0.5">{client.occupation} · {client.city}</p>
         </div>
         <div className="flex gap-2">
-          <button className="btn-secondary">
-            <Edit2 size={15} /> Edit
-          </button>
-          <Link to={`/chat?client=${client.id}`} className="btn-primary">
-            <MessageSquare size={15} /> Message
-          </Link>
+          <Tooltip content="Edit client profile (coming soon)" side="bottom">
+            <button type="button" className="btn-secondary">
+              <Edit2 size={15} /> Edit
+            </button>
+          </Tooltip>
+          <Tooltip content="Open chat with this client" side="bottom">
+            <Link to={`/chat?client=${client.id}`} className="btn-primary">
+              <MessageSquare size={15} /> Message
+            </Link>
+          </Tooltip>
         </div>
       </div>
 
@@ -188,9 +231,11 @@ export default function ClientDetail() {
           {activeTab === 'Cases' && (
             <div className="space-y-3">
               <div className="flex justify-end">
-                <Link to={`/cases/new?client=${client.id}`} className="btn-primary text-xs">
-                  <Plus size={14} /> New Case
-                </Link>
+                <Tooltip content="Open new case for this client" side="bottom">
+                  <Link to={`/cases/new?client=${client.id}`} className="btn-primary text-xs">
+                    <Plus size={14} /> New Case
+                  </Link>
+                </Tooltip>
               </div>
               {cases.length === 0 && <p className="text-sm text-gray-500 text-center py-8">No cases found.</p>}
               {cases.map(c => (
@@ -222,13 +267,19 @@ export default function ClientDetail() {
           {activeTab === 'Documents' && (
             <div className="space-y-3">
               <div className="flex justify-end">
-                <button className="btn-primary text-xs">
-                  <Plus size={14} /> Upload Document
-                </button>
+                <Tooltip content="Add a document to this client's file" side="bottom">
+                  <button
+                    type="button"
+                    onClick={() => { setEditingDoc(null); setDocModalOpen(true); }}
+                    className="btn-primary text-xs"
+                  >
+                    <Plus size={14} /> Upload Document
+                  </button>
+                </Tooltip>
               </div>
               {docs.length === 0 && <p className="text-sm text-gray-500 text-center py-8">No documents uploaded.</p>}
               {docs.map(doc => (
-                <div key={doc.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                <div key={doc.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl group">
                   <div className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${
                     doc.type === 'pdf' ? 'bg-red-100' : doc.type === 'image' ? 'bg-blue-100' : 'bg-indigo-100'
                   }`}>
@@ -239,14 +290,79 @@ export default function ClientDetail() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">{doc.name}</p>
                     <p className="text-xs text-gray-500">{doc.category} · {doc.size} · {doc.uploadedByName}</p>
+                    {doc.description && (
+                      <p className="text-xs text-gray-400 mt-0.5 line-clamp-1">{doc.description}</p>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 flex-shrink-0">
                     <span className={`badge text-xs ${doc.visibility === 'shared' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
                       {doc.visibility === 'shared' ? 'Shared' : 'Private'}
                     </span>
+                    <Tooltip content="Download sample file (demo)" side="bottom">
+                      <button
+                        type="button"
+                        onClick={() => downloadDocumentPlaceholder(doc)}
+                        className="p-1.5 rounded-lg hover:bg-white text-gray-500"
+                      >
+                        <Download size={14} />
+                      </button>
+                    </Tooltip>
+                    <Tooltip content="Edit document details" side="bottom">
+                      <button
+                        type="button"
+                        onClick={() => { setEditingDoc(doc); setDocModalOpen(true); }}
+                        className="p-1.5 rounded-lg hover:bg-white text-gray-500"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                    </Tooltip>
+                    <Tooltip content="Remove from list" side="bottom">
+                      <button
+                        type="button"
+                        onClick={() => setDeleteConfirmId(doc.id)}
+                        className="p-1.5 rounded-lg hover:bg-white text-red-500"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </Tooltip>
                   </div>
                 </div>
               ))}
+
+              <DocumentFormModal
+                open={docModalOpen}
+                onClose={() => { setDocModalOpen(false); setEditingDoc(null); }}
+                title={editingDoc ? 'Edit document' : 'Upload document'}
+                submitLabel={editingDoc ? 'Save' : 'Add'}
+                clientId={client.id}
+                caseOptions={caseOptions}
+                initial={editingDoc}
+                onSubmit={handleDocumentSave}
+              />
+
+              {deleteConfirmId && (
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[60] p-4">
+                  <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full">
+                    <p className="text-sm font-medium text-gray-900">Delete this document?</p>
+                    <p className="text-xs text-gray-500 mt-1">This cannot be undone in the demo.</p>
+                    <div className="flex gap-2 mt-4 justify-end">
+                      <button type="button" className="btn-secondary text-xs py-1.5 px-3" onClick={() => setDeleteConfirmId(null)}>
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-primary bg-red-600 hover:bg-red-700 border-red-600"
+                        onClick={() => {
+                          deleteDocument(deleteConfirmId);
+                          setDeleteConfirmId(null);
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -254,9 +370,11 @@ export default function ClientDetail() {
           {activeTab === 'Appointments' && (
             <div className="space-y-3">
               <div className="flex justify-end">
-                <Link to={`/appointments/new?client=${client.id}`} className="btn-primary text-xs">
-                  <Plus size={14} /> Schedule Appointment
-                </Link>
+                <Tooltip content="Book an appointment with this client" side="bottom">
+                  <Link to={`/appointments/new?client=${client.id}`} className="btn-primary text-xs">
+                    <Plus size={14} /> Schedule Appointment
+                  </Link>
+                </Tooltip>
               </div>
               {appointments.length === 0 && <p className="text-sm text-gray-500 text-center py-8">No appointments scheduled.</p>}
               {appointments.map(a => (
@@ -317,14 +435,22 @@ export default function ClientDetail() {
           {activeTab === 'Notes' && (
             <div className="space-y-4">
               <div className="flex justify-end">
-                <button className="btn-primary text-xs"><Plus size={14} /> Add Note</button>
+                <Tooltip content="Add a note row (demo)" side="bottom">
+                  <button type="button" className="btn-primary text-xs">
+                    <Plus size={14} /> Add Note
+                  </button>
+                </Tooltip>
               </div>
               <textarea
                 defaultValue={client.notes}
                 className="input min-h-32 resize-none"
                 placeholder="Add internal notes about this client..."
               />
-              <button className="btn-primary text-xs">Save Notes</button>
+              <Tooltip content="Save notes locally (demo)" side="bottom">
+                <button type="button" className="btn-primary text-xs">
+                  Save Notes
+                </button>
+              </Tooltip>
             </div>
           )}
         </div>

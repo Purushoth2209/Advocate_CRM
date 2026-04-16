@@ -5,6 +5,7 @@ import {
   CheckCheck, Clock, Circle,
 } from 'lucide-react';
 import { mockClients, mockChats, mockCases } from '../../data/mockData';
+import Tooltip from '../../components/ui/Tooltip';
 
 const ADVOCATE_ID = 'adv-001';
 
@@ -91,11 +92,12 @@ export default function Chat() {
             const unread = getUnreadCount(client.id);
             const isActive = selectedClientId === client.id;
             return (
-              <button
-                key={client.id}
-                onClick={() => setSelectedClientId(client.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 ${isActive ? 'bg-navy-50' : ''}`}
-              >
+              <Tooltip key={client.id} content={`Open conversation with ${client.name}`} side="right" className="w-full">
+                <button
+                  type="button"
+                  onClick={() => setSelectedClientId(client.id)}
+                  className={`w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 ${isActive ? 'bg-navy-50' : ''}`}
+                >
                 <div className="relative flex-shrink-0">
                   <div className="w-10 h-10 bg-gradient-to-br from-navy-600 to-navy-800 rounded-full flex items-center justify-center">
                     <span className="text-white text-xs font-bold">
@@ -124,7 +126,8 @@ export default function Chat() {
                     {unread}
                   </span>
                 )}
-              </button>
+                </button>
+              </Tooltip>
             );
           })}
         </div>
@@ -149,15 +152,21 @@ export default function Chat() {
                 </p>
               </div>
               <div className="flex items-center gap-1">
-                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Call">
-                  <Phone size={16} className="text-gray-500" />
-                </button>
-                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors" title="Video call">
-                  <Video size={16} className="text-gray-500" />
-                </button>
-                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                  <MoreVertical size={16} className="text-gray-500" />
-                </button>
+                <Tooltip content="Voice call (demo)" side="bottom">
+                  <button type="button" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <Phone size={16} className="text-gray-500" />
+                  </button>
+                </Tooltip>
+                <Tooltip content="Video call (demo)" side="bottom">
+                  <button type="button" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <Video size={16} className="text-gray-500" />
+                  </button>
+                </Tooltip>
+                <Tooltip content="More options" side="bottom">
+                  <button type="button" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <MoreVertical size={16} className="text-gray-500" />
+                  </button>
+                </Tooltip>
               </div>
             </div>
 
@@ -230,9 +239,11 @@ export default function Chat() {
             {/* Input */}
             <div className="bg-white border-t border-gray-100 px-5 py-4">
               <div className="flex items-end gap-3">
-                <button className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors flex-shrink-0">
-                  <Paperclip size={18} className="text-gray-400" />
-                </button>
+                <Tooltip content="Attach a file (demo)" side="bottom">
+                  <button type="button" className="p-2.5 hover:bg-gray-100 rounded-xl transition-colors flex-shrink-0">
+                    <Paperclip size={18} className="text-gray-400" />
+                  </button>
+                </Tooltip>
                 <div className="flex-1 bg-gray-50 rounded-xl border border-gray-200 px-4 py-2.5 flex items-end gap-2">
                   <textarea
                     value={messageText}
@@ -243,17 +254,20 @@ export default function Chat() {
                     rows={1}
                   />
                 </div>
-                <button
-                  onClick={sendMessage}
-                  disabled={!messageText.trim()}
-                  className={`p-2.5 rounded-xl flex-shrink-0 transition-colors ${
-                    messageText.trim()
-                      ? 'bg-navy-700 hover:bg-navy-800 text-white'
-                      : 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                  }`}
-                >
-                  <Send size={18} />
-                </button>
+                <Tooltip content={messageText.trim() ? 'Send message' : 'Type a message to send'} side="bottom">
+                  <button
+                    type="button"
+                    onClick={sendMessage}
+                    disabled={!messageText.trim()}
+                    className={`p-2.5 rounded-xl flex-shrink-0 transition-colors ${
+                      messageText.trim()
+                        ? 'bg-navy-700 hover:bg-navy-800 text-white'
+                        : 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                    }`}
+                  >
+                    <Send size={18} />
+                  </button>
+                </Tooltip>
               </div>
               <p className="text-xs text-gray-400 mt-2 text-center">
                 Messages are encrypted and stored securely. Press Enter to send, Shift+Enter for new line.

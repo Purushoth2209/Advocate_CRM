@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import {
-  FolderOpen, Search, Upload, Eye, EyeOff, Filter,
-  FileText, Image, File, Download, Trash2, Share2,
-  Lock, Users, Briefcase, ChevronDown, Plus,
+  FolderOpen, Search, Upload, FileText, Image, File, Download, Trash2, Share2,
+  Lock, Users, Briefcase, Edit2,
 } from 'lucide-react';
-import { mockDocuments, mockClients, mockCases } from '../../data/mockData';
+import { mockClients, mockCases } from '../../data/mockData';
+import { useAuth } from '../../context/AuthContext';
+import { useDocuments } from '../../context/DocumentsContext';
+import { downloadDocumentPlaceholder } from '../../utils/documentDownload';
+import Tooltip from '../../components/ui/Tooltip';
 
 const fileIcon = (type) => {
   if (type === 'pdf') return { icon: FileText, bg: 'bg-red-50', color: 'text-red-500' };
@@ -22,19 +25,38 @@ const categoryColors = {
   Research: 'bg-indigo-100 text-indigo-700',
 };
 
+function inferType(name) {
+  const lower = (name || '').toLowerCase();
+  if (/\.(jpg|jpeg|png|gif|webp)$/i.test(lower)) return 'image';
+  if (/\.pdf$/i.test(lower)) return 'pdf';
+  return 'doc';
+}
+
+const emptyForm = () => ({
+  name: '',
+  category: 'Evidence',
+  caseId: '',
+  visibility: 'shared',
+  description: '',
+});
+
 export default function DocumentVault() {
+  const { user } = useAuth();
+  const { documents, addDocument, updateDocument, deleteDocument, toggleVisibility } = useDocuments();
+
   const [search, setSearch] = useState('');
   const [filterVisibility, setFilterVisibility] = useState('all');
   const [filterCase, setFilterCase] = useState('all');
   const [filterCategory, setFilterCategory] = useState('all');
   const [uploadModal, setUploadModal] = useState(false);
-  const [newDoc, setNewDoc] = useState({ name: '', category: 'Evidence', caseId: '', visibility: 'shared', description: '' });
+  const [editingDoc, setEditingDoc] = useState(null);
+  const [newDoc, setNewDoc] = useState(emptyForm);
 
-  const categories = [...new Set(mockDocuments.map(d => d.category))];
+  const categories = [...new Set(documents.map(d => d.category))];
 
-  const filtered = mockDocuments.filter(d => {
+  const filtered = documents.filter(d => {
     const q = search.toLowerCase();
-    const matchSearch = !q || d.name.toLowerCase().includes(q) || d.description.toLowerCase().includes(q) || d.category.toLowerCase().includes(q);
+    const matchSearch = !q || d.name.toLowerCase().includes(q) || (d.description || '').toLowerCase().includes(q) || d.category.toLowerCase().includes(q);
     const matchVis = filterVisibility === 'all' || d.visibility === filterVisibility;
     const matchCase = filterCase === 'all' || d.caseId === filterCase;
     const matchCat = filterCategory === 'all' || d.category === filterCategory;
@@ -44,34 +66,94 @@ export default function DocumentVault() {
   const shared = filtered.filter(d => d.visibility === 'shared');
   const privateOnly = filtered.filter(d => d.visibility === 'private');
 
+  const openNew = () => {
+    setEditingDoc(null);
+    setNewDoc(emptyForm());
+    setUploadModal(true);
+  };
+
+  const openEdit = (doc) => {
+    setEditingDoc(doc);
+    setNewDoc({
+      name: doc.name,
+      category: doc.category,
+      caseId: doc.caseId || '',
+      visibility: doc.visibility,
+      description: doc.description || '',
+    });
+    setUploadModal(true);
+  };
+
+  const closeModal = () => {
+    setUploadModal(false);
+    setEditingDoc(null);
+    setNewDoc(emptyForm());
+  };
+
   const handleUpload = (e) => {
     e.preventDefault();
-    setUploadModal(false);
-    setNewDoc({ name: '', category: 'Evidence', caseId: '', visibility: 'shared', description: '' });
+    const caseRow = mockCases.find(x => x.id === newDoc.caseId);
+    if (!newDoc.name.trim()) {
+      window.alert('Please enter a document name.');
+      return;
+    }
+    if (!caseRow) {
+      window.alert('Please select a linked case.');
+      return;
+    }
+    if (editingDoc) {
+      updateDocument(editingDoc.id, {
+        name: newDoc.name.trim(),
+        category: newDoc.category,
+        caseId: newDoc.caseId,
+        clientId: caseRow.clientId,
+        visibility: newDoc.visibility,
+        description: newDoc.description.trim(),
+        type: inferType(newDoc.name),
+      });
+    } else {
+      addDocument({
+        name: newDoc.name.trim(),
+        category: newDoc.category,
+        caseId: newDoc.caseId,
+        clientId: caseRow.clientId,
+        visibility: newDoc.visibility,
+        description: newDoc.description.trim(),
+        uploadedBy: user.id,
+        uploadedByName: user.name,
+        size: '0.1 MB',
+        type: inferType(newDoc.name),
+      });
+    }
+    closeModal();
   };
+
+  const caseCountWithDocs = [...new Set(documents.map(d => d.caseId).filter(Boolean))].length;
 
   return (
     <div className="space-y-5">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">Document Vault</h2>
-          <p className="text-sm text-gray-500 mt-0.5">{mockDocuments.length} documents · {mockDocuments.filter(d => d.visibility === 'shared').length} shared · {mockDocuments.filter(d => d.visibility === 'private').length} private</p>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {documents.length} documents · {documents.filter(d => d.visibility === 'shared').length} shared · {documents.filter(d => d.visibility === 'private').length} private
+          </p>
         </div>
-        <button onClick={() => setUploadModal(true)} className="btn-primary">
-          <Upload size={16} />
-          Upload Document
-        </button>
+        <Tooltip content="Add a document linked to a case" side="bottom">
+          <button type="button" onClick={openNew} className="btn-primary">
+            <Upload size={16} />
+            Upload Document
+          </button>
+        </Tooltip>
       </div>
 
-      {/* Legend */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="card p-4 flex items-center gap-3">
           <div className="w-9 h-9 bg-green-50 rounded-lg flex items-center justify-center">
             <Users size={18} className="text-green-600" />
           </div>
           <div>
-            <p className="text-lg font-bold text-gray-900">{mockDocuments.filter(d => d.visibility === 'shared').length}</p>
+            <p className="text-lg font-bold text-gray-900">{documents.filter(d => d.visibility === 'shared').length}</p>
             <p className="text-xs text-gray-500">Shared with Client</p>
           </div>
         </div>
@@ -80,7 +162,7 @@ export default function DocumentVault() {
             <Lock size={18} className="text-orange-600" />
           </div>
           <div>
-            <p className="text-lg font-bold text-gray-900">{mockDocuments.filter(d => d.visibility === 'private').length}</p>
+            <p className="text-lg font-bold text-gray-900">{documents.filter(d => d.visibility === 'private').length}</p>
             <p className="text-xs text-gray-500">Private (Advocate Only)</p>
           </div>
         </div>
@@ -89,7 +171,7 @@ export default function DocumentVault() {
             <Briefcase size={18} className="text-blue-600" />
           </div>
           <div>
-            <p className="text-lg font-bold text-gray-900">{[...new Set(mockDocuments.map(d => d.caseId))].length}</p>
+            <p className="text-lg font-bold text-gray-900">{caseCountWithDocs}</p>
             <p className="text-xs text-gray-500">Cases with Docs</p>
           </div>
         </div>
@@ -104,7 +186,6 @@ export default function DocumentVault() {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="card p-4 flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-48">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -135,7 +216,6 @@ export default function DocumentVault() {
         </select>
       </div>
 
-      {/* Shared Documents Section */}
       <div className="card">
         <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-3">
           <div className="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center">
@@ -170,16 +250,27 @@ export default function DocumentVault() {
                 <span className={`badge text-xs hidden sm:inline-flex ${categoryColors[doc.category] || 'bg-gray-100 text-gray-600'}`}>
                   {doc.category}
                 </span>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="p-1.5 hover:bg-gray-100 rounded text-gray-500" title="Download">
-                    <Download size={14} />
-                  </button>
-                  <button className="p-1.5 hover:bg-orange-50 rounded text-gray-500 hover:text-orange-600" title="Make Private">
-                    <Lock size={14} />
-                  </button>
-                  <button className="p-1.5 hover:bg-red-50 rounded text-gray-500 hover:text-red-500" title="Delete">
-                    <Trash2 size={14} />
-                  </button>
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 sm:opacity-100 transition-opacity">
+                  <Tooltip content="Download sample (demo)" side="bottom">
+                    <button type="button" className="p-1.5 hover:bg-gray-100 rounded text-gray-500" onClick={() => downloadDocumentPlaceholder(doc)}>
+                      <Download size={14} />
+                    </button>
+                  </Tooltip>
+                  <Tooltip content="Edit details" side="bottom">
+                    <button type="button" className="p-1.5 hover:bg-gray-100 rounded text-gray-500" onClick={() => openEdit(doc)}>
+                      <Edit2 size={14} />
+                    </button>
+                  </Tooltip>
+                  <Tooltip content="Make private (hidden from client)" side="bottom">
+                    <button type="button" className="p-1.5 hover:bg-orange-50 rounded text-gray-500 hover:text-orange-600" onClick={() => toggleVisibility(doc.id)}>
+                      <Lock size={14} />
+                    </button>
+                  </Tooltip>
+                  <Tooltip content="Delete document" side="bottom">
+                    <button type="button" className="p-1.5 hover:bg-red-50 rounded text-gray-500 hover:text-red-500" onClick={() => deleteDocument(doc.id)}>
+                      <Trash2 size={14} />
+                    </button>
+                  </Tooltip>
                 </div>
               </div>
             );
@@ -187,7 +278,6 @@ export default function DocumentVault() {
         </div>
       </div>
 
-      {/* Private Documents Section */}
       <div className="card">
         <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-3">
           <div className="w-8 h-8 bg-orange-50 rounded-lg flex items-center justify-center">
@@ -225,16 +315,27 @@ export default function DocumentVault() {
                 <span className={`badge text-xs hidden sm:inline-flex ${categoryColors[doc.category] || 'bg-gray-100 text-gray-600'}`}>
                   {doc.category}
                 </span>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="p-1.5 hover:bg-gray-100 rounded text-gray-500" title="Download">
-                    <Download size={14} />
-                  </button>
-                  <button className="p-1.5 hover:bg-green-50 rounded text-gray-500 hover:text-green-600" title="Share with Client">
-                    <Share2 size={14} />
-                  </button>
-                  <button className="p-1.5 hover:bg-red-50 rounded text-gray-500 hover:text-red-500" title="Delete">
-                    <Trash2 size={14} />
-                  </button>
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 sm:opacity-100 transition-opacity">
+                  <Tooltip content="Download sample (demo)" side="bottom">
+                    <button type="button" className="p-1.5 hover:bg-gray-100 rounded text-gray-500" onClick={() => downloadDocumentPlaceholder(doc)}>
+                      <Download size={14} />
+                    </button>
+                  </Tooltip>
+                  <Tooltip content="Edit details" side="bottom">
+                    <button type="button" className="p-1.5 hover:bg-gray-100 rounded text-gray-500" onClick={() => openEdit(doc)}>
+                      <Edit2 size={14} />
+                    </button>
+                  </Tooltip>
+                  <Tooltip content="Share with client" side="bottom">
+                    <button type="button" className="p-1.5 hover:bg-green-50 rounded text-gray-500 hover:text-green-600" onClick={() => toggleVisibility(doc.id)}>
+                      <Share2 size={14} />
+                    </button>
+                  </Tooltip>
+                  <Tooltip content="Delete document" side="bottom">
+                    <button type="button" className="p-1.5 hover:bg-red-50 rounded text-gray-500 hover:text-red-500" onClick={() => deleteDocument(doc.id)}>
+                      <Trash2 size={14} />
+                    </button>
+                  </Tooltip>
                 </div>
               </div>
             );
@@ -242,29 +343,27 @@ export default function DocumentVault() {
         </div>
       </div>
 
-      {/* Upload Modal */}
       {uploadModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-5 border-b border-gray-100">
-              <h3 className="text-base font-semibold text-gray-900">Upload Document</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Upload a document to a case — choose visibility carefully.</p>
+              <h3 className="text-base font-semibold text-gray-900">{editingDoc ? 'Edit document' : 'Upload document'}</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Link to a case — metadata is stored locally in this demo.</p>
             </div>
             <form onSubmit={handleUpload} className="px-6 py-5 space-y-4">
-              {/* File drop zone */}
-              <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center hover:border-navy-400 transition-colors cursor-pointer">
+              <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center">
                 <Upload size={24} className="text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">Click to browse or drag & drop files</p>
-                <p className="text-xs text-gray-400 mt-1">PDF, DOC, DOCX, JPG, PNG — Max 25MB</p>
+                <p className="text-sm text-gray-500">Enter the file name below — real upload would use cloud storage.</p>
               </div>
               <div>
-                <label className="label">Document Name</label>
+                <label className="label">Document name</label>
                 <input
                   type="text"
                   value={newDoc.name}
                   onChange={e => setNewDoc({ ...newDoc, name: e.target.value })}
                   placeholder="e.g. Property Sale Deed.pdf"
                   className="input"
+                  required
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -281,7 +380,7 @@ export default function DocumentVault() {
                   </select>
                 </div>
                 <div>
-                  <label className="label">Linked Case</label>
+                  <label className="label">Linked case</label>
                   <select
                     value={newDoc.caseId}
                     onChange={e => setNewDoc({ ...newDoc, caseId: e.target.value })}
@@ -315,12 +414,22 @@ export default function DocumentVault() {
                   </label>
                 </div>
               </div>
+              <div>
+                <label className="label">Description</label>
+                <textarea
+                  value={newDoc.description}
+                  onChange={e => setNewDoc({ ...newDoc, description: e.target.value })}
+                  rows={2}
+                  className="input min-h-[72px] resize-y"
+                  placeholder="Optional"
+                />
+              </div>
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setUploadModal(false)} className="btn-secondary flex-1 justify-center">
+                <button type="button" title="Discard and close" onClick={closeModal} className="btn-secondary flex-1 justify-center">
                   Cancel
                 </button>
-                <button type="submit" className="btn-primary flex-1 justify-center">
-                  <Upload size={15} /> Upload
+                <button type="submit" title={editingDoc ? 'Save changes to this document' : 'Add document metadata to the vault'} className="btn-primary flex-1 justify-center">
+                  <Upload size={15} /> {editingDoc ? 'Save' : 'Upload'}
                 </button>
               </div>
             </form>

@@ -2,9 +2,10 @@ import { Bell, Search, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { mockNotifications } from '../../data/mockData';
+import Tooltip from '../ui/Tooltip';
 
 const pageTitles = {
-  '/': 'Dashboard',
+  '/dashboard': 'Dashboard',
   '/clients': 'Clients',
   '/cases': 'Cases',
   '/documents': 'Documents',
@@ -20,7 +21,7 @@ export default function TopBar() {
   const unreadCount = mockNotifications.filter(n => !n.read).length;
 
   const title = Object.entries(pageTitles).find(([path]) =>
-    path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
+    path === '/dashboard' ? location.pathname === '/dashboard' : location.pathname.startsWith(path)
   )?.[1] ?? 'LexDesk';
 
   return (
@@ -28,35 +29,44 @@ export default function TopBar() {
       <h1 className="text-base font-semibold text-gray-900">{title}</h1>
 
       <div className="flex items-center gap-3">
-        {/* Search */}
         <div className="relative hidden md:block">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search clients, cases..."
-            className="pl-9 pr-4 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg w-52 focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-500"
-          />
+          <Tooltip content="Search clients, cases, and matters (demo UI)" side="bottom">
+            <span className="relative inline-flex">
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10" />
+              <input
+                type="text"
+                placeholder="Search clients, cases..."
+                className="pl-9 pr-4 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg w-52 focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-500"
+              />
+            </span>
+          </Tooltip>
         </div>
 
-        {/* Notifications */}
         <div className="relative">
-          <button
-            onClick={() => setNotifOpen(!notifOpen)}
-            className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <Bell size={18} className="text-gray-600" />
-            {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
-                {unreadCount}
-              </span>
-            )}
-          </button>
+          <Tooltip content="Notifications" side="bottom">
+            <button
+              type="button"
+              onClick={() => setNotifOpen(!notifOpen)}
+              className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <Bell size={18} className="text-gray-600" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+          </Tooltip>
 
           {notifOpen && (
             <div className="absolute right-0 top-10 w-80 bg-white rounded-xl shadow-lg border border-gray-100 z-50">
               <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
                 <span className="text-sm font-semibold text-gray-900">Notifications</span>
-                <button className="text-xs text-navy-600 font-medium">Mark all read</button>
+                <Tooltip content="Mark all as read (demo)" side="bottom">
+                  <button type="button" className="text-xs text-navy-600 font-medium">
+                    Mark all read
+                  </button>
+                </Tooltip>
               </div>
               <div className="max-h-80 overflow-y-auto">
                 {mockNotifications.map(n => (
@@ -79,11 +89,12 @@ export default function TopBar() {
           )}
         </div>
 
-        {/* Quick add */}
-        <Link to="/clients/new" className="btn-primary text-xs py-1.5 px-3">
-          <Plus size={14} />
-          New Client
-        </Link>
+        <Tooltip content="Start new client intake" side="bottom">
+          <Link to="/clients/new" className="btn-primary text-xs py-1.5 px-3">
+            <Plus size={14} />
+            New Client
+          </Link>
+        </Tooltip>
       </div>
     </header>
   );

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Plus, Filter, Phone, Mail, Briefcase, MapPin, ChevronRight, Tag } from 'lucide-react';
 import { mockClients, mockAdvocates } from '../../data/mockData';
+import Tooltip from '../../components/ui/Tooltip';
 
 const statusBadge = {
   active: 'bg-green-100 text-green-700',
@@ -34,10 +35,12 @@ export default function ClientList() {
           <h2 className="text-lg font-semibold text-gray-900">All Clients</h2>
           <p className="text-sm text-gray-500 mt-0.5">{mockClients.length} total · {mockClients.filter(c => c.status === 'active').length} active</p>
         </div>
-        <Link to="/clients/new" className="btn-primary">
-          <Plus size={16} />
-          Add Client
-        </Link>
+        <Tooltip content="Open new client intake" side="bottom">
+          <Link to="/clients/new" className="btn-primary">
+            <Plus size={16} />
+            Add Client
+          </Link>
+        </Tooltip>
       </div>
 
       {/* Filters */}
