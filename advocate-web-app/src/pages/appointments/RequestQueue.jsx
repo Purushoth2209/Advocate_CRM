@@ -4,7 +4,8 @@ import {
   Clock, MapPin, MessageSquare, AlertTriangle, Calendar,
   ChevronDown, ChevronUp, History,
 } from 'lucide-react';
-import { mockClients, mockCases } from '../../data/mockData';
+import { mockClients } from '../../data/mockData';
+import { useCases } from '../../context/CasesContext';
 import { STATUS_META, ACTION_HISTORY_LABELS, generateSlotsForDate, isLateCancel } from '../../utils/slotGenerator';
 
 const typeIcon   = { 'in-person': User, 'video-call': Video, 'phone-call': Phone };
@@ -35,6 +36,7 @@ function ConfirmModal({ title, message, confirmLabel, confirmClass, onConfirm, o
 
 // ── Appointment card ─────────────────────────────────────────────────────────
 function AppointmentCard({ appt, availability, allAppointments, onAction, showHistory }) {
+  const { cases } = useCases();
   const [expanded, setExpanded] = useState(false);
   const [modal, setModal] = useState(null); // 'decline' | 'cancel' | 'reschedule' | 'no-show'
   const [declineReason, setDeclineReason] = useState('');
@@ -44,7 +46,7 @@ function AppointmentCard({ appt, availability, allAppointments, onAction, showHi
   const [rescheduleReason, setRescheduleReason] = useState('');
 
   const client   = mockClients.find(c => c.id === appt.clientId);
-  const caseItem = mockCases.find(c => c.id === appt.caseId);
+  const caseItem = cases.find(c => c.id === appt.caseId);
   const IconComp = typeIcon[appt.type] || User;
   const meta     = STATUS_META[appt.status] || STATUS_META['requested'];
 

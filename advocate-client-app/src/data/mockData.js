@@ -91,13 +91,105 @@ export const mockCases = [
     messages: [],
     appointments: [],
   },
+  {
+    id: 'case-raghav-001',
+    cnr: 'TNCH0F0002912018',
+    title: 'Raghav — CC (Filing 291/2018)',
+    type: 'CC',
+    court: '11 — Metropolitan Magistrate (CCB / Cheating), Chennai',
+    advocate: 'Adv. Priya Sharma',
+    advocateId: 'adv-001',
+    status: 'Hearing Scheduled',
+    statusColor: 'blue',
+    nextHearing: '2026-04-17',
+    filedDate: '2018-01-10',
+    lastUpdated: '2026-04-01T12:00:00',
+    description: 'Criminal case (CC). eCourts-aligned filing and registration.',
+    timeline: [
+      { date: '2018-01-10', event: 'Filed / Registered', description: 'Filing 291/2018 · Reg. 290/2018', type: 'filed' },
+      { date: '2018-03-08', event: 'First hearing', description: 'Court took up the matter', type: 'hearing' },
+      { date: '2026-04-17', event: 'Next hearing', description: 'Service pending — NBW stage', type: 'upcoming' },
+    ],
+    documents: [],
+    messages: [],
+    appointments: [],
+  },
+  {
+    id: 'case-raghav-002',
+    cnr: 'TNCH0C0008262025',
+    title: 'Raghav — STC (Filing 826/2025)',
+    type: 'STC',
+    court: '8 — Fast Track Court V (NI Act), Chennai',
+    advocate: 'Adv. Priya Sharma',
+    advocateId: 'adv-001',
+    status: 'Hearing Scheduled',
+    statusColor: 'blue',
+    nextHearing: '2026-04-16',
+    filedDate: '2025-01-20',
+    lastUpdated: '2026-04-01T12:00:00',
+    description: 'STC under NI Act. Evidence stage.',
+    timeline: [
+      { date: '2025-01-20', event: 'Filed', description: 'Filing 826/2025', type: 'filed' },
+      { date: '2025-03-13', event: 'Registered / First hearing', description: 'Reg. 1680/2025', type: 'hearing' },
+      { date: '2026-04-16', event: 'Next hearing', description: 'Evidence', type: 'upcoming' },
+    ],
+    documents: [],
+    messages: [],
+    appointments: [],
+  },
+  {
+    id: 'case-raghav-003',
+    cnr: 'TNCH090101872025',
+    title: 'Raghav — RLTOP (Filing 9987/2025)',
+    type: 'RLTOP',
+    court: '16 — Court Of Small Causes, Chennai',
+    advocate: 'Adv. Priya Sharma',
+    advocateId: 'adv-001',
+    status: 'Under Review',
+    statusColor: 'purple',
+    nextHearing: '2026-04-22',
+    filedDate: '2025-11-26',
+    lastUpdated: '2026-04-01T12:00:00',
+    description: 'RLTOP — IA / EA / CMP / CRP / CMA pending.',
+    timeline: [
+      { date: '2025-11-26', event: 'Filed', description: 'Filing 9987/2025', type: 'filed' },
+      { date: '2026-01-28', event: 'First hearing', description: 'Court of Small Causes', type: 'hearing' },
+      { date: '2026-04-22', event: 'Next hearing', description: 'Interim applications pending', type: 'upcoming' },
+    ],
+    documents: [],
+    messages: [],
+    appointments: [],
+  },
+  {
+    id: 'case-raghav-004',
+    cnr: 'TNCD030003762019',
+    title: 'Raghav — AS (Filing 376/2019)',
+    type: 'AS',
+    court: '6 — II Additional Sub Judge, Chennai',
+    advocate: 'Adv. Priya Sharma',
+    advocateId: 'adv-001',
+    status: 'Hearing Scheduled',
+    statusColor: 'blue',
+    nextHearing: '2026-04-21',
+    filedDate: '2019-02-28',
+    lastUpdated: '2026-04-01T12:00:00',
+    description: 'Additional Sub Judge court matter. IA pending.',
+    timeline: [
+      { date: '2019-02-28', event: 'Filed', description: 'Filing 376/2019', type: 'filed' },
+      { date: '2019-04-22', event: 'First hearing', description: 'Reg. 11/2019', type: 'hearing' },
+      { date: '2026-04-21', event: 'Next hearing', description: 'IA pending', type: 'upcoming' },
+    ],
+    documents: [],
+    messages: [],
+    appointments: [],
+  },
 ];
 
 /** Client profile + advocate links (mirrors CRM client–advocate mapping) */
 export const mockClientProfile = {
-  displayName: 'Ramesh Kumar',
-  phone: '+91 98765 43210',
-  clientRef: 'CLT-2024-001',
+  displayName: 'Raghav',
+  phone: '+91 98400 77777',
+  clientRef: 'CLT-2026-RAGHAV',
   firmLabel: 'Sharma & Associates',
   advocateLinks: [
     {
@@ -190,7 +282,8 @@ export const mockClientProfileFresh = {
   advocateLinks: [],
 };
 
-export const mockCasesFresh = [];
+/** Same demo matters as returning users — empty fresh list hid all cases when experience was "fresh". */
+export const mockCasesFresh = mockCases;
 
 export const mockNotificationsFresh = [
   {

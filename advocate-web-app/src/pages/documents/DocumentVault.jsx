@@ -3,7 +3,8 @@ import {
   FolderOpen, Search, Upload, FileText, Image, File, Download, Trash2, Share2,
   Lock, Users, Briefcase, Edit2,
 } from 'lucide-react';
-import { mockClients, mockCases } from '../../data/mockData';
+import { mockClients } from '../../data/mockData';
+import { useCases } from '../../context/CasesContext';
 import { useAuth } from '../../context/AuthContext';
 import { useDocuments } from '../../context/DocumentsContext';
 import { downloadDocumentPlaceholder } from '../../utils/documentDownload';
@@ -42,6 +43,7 @@ const emptyForm = () => ({
 
 export default function DocumentVault() {
   const { user } = useAuth();
+  const { cases } = useCases();
   const { documents, addDocument, updateDocument, deleteDocument, toggleVisibility } = useDocuments();
 
   const [search, setSearch] = useState('');
@@ -92,7 +94,7 @@ export default function DocumentVault() {
 
   const handleUpload = (e) => {
     e.preventDefault();
-    const caseRow = mockCases.find(x => x.id === newDoc.caseId);
+    const caseRow = cases.find(x => x.id === newDoc.caseId);
     if (!newDoc.name.trim()) {
       window.alert('Please enter a document name.');
       return;
@@ -204,7 +206,7 @@ export default function DocumentVault() {
         </select>
         <select value={filterCase} onChange={e => setFilterCase(e.target.value)} className="input w-auto">
           <option value="all">All Cases</option>
-          {mockCases.map(c => (
+          {cases.map(c => (
             <option key={c.id} value={c.id}>{c.title}</option>
           ))}
         </select>
@@ -233,7 +235,7 @@ export default function DocumentVault() {
           )}
           {shared.map(doc => {
             const { icon: Icon, bg, color } = fileIcon(doc.type);
-            const relatedCase = mockCases.find(c => c.id === doc.caseId);
+            const relatedCase = cases.find(c => c.id === doc.caseId);
             const relatedClient = mockClients.find(c => c.id === doc.clientId);
             return (
               <div key={doc.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50 transition-colors group">
@@ -295,7 +297,7 @@ export default function DocumentVault() {
           )}
           {privateOnly.map(doc => {
             const { icon: Icon, bg, color } = fileIcon(doc.type);
-            const relatedCase = mockCases.find(c => c.id === doc.caseId);
+            const relatedCase = cases.find(c => c.id === doc.caseId);
             const relatedClient = mockClients.find(c => c.id === doc.clientId);
             return (
               <div key={doc.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50 transition-colors group">
@@ -387,7 +389,7 @@ export default function DocumentVault() {
                     className="input"
                   >
                     <option value="">Select case...</option>
-                    {mockCases.map(c => (
+                    {cases.map(c => (
                       <option key={c.id} value={c.id}>{c.title}</option>
                     ))}
                   </select>

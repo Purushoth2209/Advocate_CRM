@@ -1,11 +1,99 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FileText, MessageSquare, Calendar, Upload, Clock, CheckCircle, Circle, Send, Tag, Download } from 'lucide-react';
+import { FileText, MessageSquare, Calendar, Upload, Clock, CheckCircle, Circle, Send, Tag, Download, Landmark } from 'lucide-react';
 import Header from '../../components/layout/Header';
 import Card from '../../components/ui/Card';
 import { StatusBadge, Badge } from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import { useClientAppData } from '../../context/ClientExperienceContext';
+import { useEcourtsCache } from '../../context/EcourtsCacheContext';
+import EcourtsCasePanel from '../../components/e-courts/EcourtsCasePanel';
+import { asArray, getCaseByCnr, hasPartnerToken, pickNextHearingDateFromCaseDetail } from '../../modules/e-courts';
+
+const HEARING_HISTORY_PAGE_SIZE = 10;
+
+function formatEcourtsHearingDate(d) {
+  if (!d) return '—';
+  const t = Date.parse(d);
+  if (Number.isNaN(t)) return String(d);
+  return new Date(t).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function ecourtsHearingTimeMs(h) {
+  const d = h?.hearingDate ?? h?.businessOnDate;
+  if (!d) return Number.NEGATIVE_INFINITY;
+  const t = Date.parse(d);
+  return Number.isNaN(t) ? Number.NEGATIVE_INFINITY : t;
+}
+
+function sortEcourtsHearingsLatestFirst(rows) {
+  return [...rows].sort((a, b) => ecourtsHearingTimeMs(b) - ecourtsHearingTimeMs(a));
+}
+
+function startOfDayMs(iso) {
+  if (!iso || typeof iso !== 'string') return null;
+  const [y, m, d] = iso.split('-').map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d, 0, 0, 0, 0).getTime();
+}
+
+function endOfDayMs(iso) {
+  if (!iso || typeof iso !== 'string') return null;
+  const [y, m, d] = iso.split('-').map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d, 23, 59, 59, 999).getTime();
+}
+
+function ecourtsHearingInDateRange(h, fromIso, toIso) {
+  const ms = ecourtsHearingTimeMs(h);
+  if (ms === Number.NEGATIVE_INFINITY) return !(fromIso || toIso);
+  const from = startOfDayMs(fromIso);
+  const to = endOfDayMs(toIso);
+  if (from != null && ms < from) return false;
+  if (to != null && ms > to) return false;
+  return true;
+}
+
+function toIsoDateLocal(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function getRelativeHearingRange(presetId) {
+  const today = new Date();
+  const end = toIsoDateLocal(today);
+
+  const lastNDaysInclusive = (n) => {
+    const s = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    s.setDate(s.getDate() - (n - 1));
+    return { from: toIsoDateLocal(s), to: end };
+  };
+
+  switch (presetId) {
+    case 'last2':
+      return lastNDaysInclusive(2);
+    case 'last7':
+      return lastNDaysInclusive(7);
+    case 'last10':
+      return lastNDaysInclusive(10);
+    case 'last30':
+      return lastNDaysInclusive(30);
+    case 'last90':
+      return lastNDaysInclusive(90);
+    default:
+      return { from: '', to: '' };
+  }
+}
+
+const HEARING_RELATIVE_PRESETS = [
+  { id: 'last2', label: 'Last 2 days' },
+  { id: 'last7', label: 'Last 7 days' },
+  { id: 'last10', label: 'Last 10 days' },
+  { id: 'last30', label: 'Last 30 days' },
+  { id: 'last90', label: 'Last 90 days' },
+];
 
 function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -15,16 +103,63 @@ function formatTime(ts) {
   return new Date(ts).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 }
 
-const tabs = ['Overview', 'Timeline', 'Documents', 'Chat', 'Hearings'];
+const tabs = ['Overview', 'eCourts', 'Timeline', 'Documents', 'Chat', 'Hearings'];
 
 export default function CaseDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { cases } = useClientAppData();
+  const { getSnapshot, setSnapshot } = useEcourtsCache();
   const [activeTab, setActiveTab] = useState('Overview');
   const [message, setMessage] = useState('');
+  const [hearingHistoryLimit, setHearingHistoryLimit] = useState(HEARING_HISTORY_PAGE_SIZE);
+  const [ecourtsHistoryLoading, setEcourtsHistoryLoading] = useState(false);
+  const [hearingDateFrom, setHearingDateFrom] = useState('');
+  const [hearingDateTo, setHearingDateTo] = useState('');
 
-  const caseData = cases.find(c => c.id === id);
+  const caseData = cases.find((c) => c.id === id);
+  const cnrKey = caseData
+    ? String(caseData.cnr || '')
+        .trim()
+        .toUpperCase()
+    : '';
+
+  useEffect(() => {
+    setHearingHistoryLimit(HEARING_HISTORY_PAGE_SIZE);
+  }, [cnrKey, hearingDateFrom, hearingDateTo]);
+
+  useEffect(() => {
+    if (!cnrKey || !hasPartnerToken()) return;
+    if (getSnapshot(cnrKey)?.payload?.data) return;
+    let cancelled = false;
+    setEcourtsHistoryLoading(true);
+    getCaseByCnr(cnrKey)
+      .then((res) => {
+        if (!cancelled) setSnapshot(cnrKey, res);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setEcourtsHistoryLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [cnrKey, getSnapshot, setSnapshot]);
+
+  const ecourtsDetail = cnrKey ? getSnapshot(cnrKey)?.payload?.data : undefined;
+  const ecourtsCourt = ecourtsDetail?.courtCaseData ?? ecourtsDetail?.court_case_data;
+  const ecourtsNextHearingRaw = pickNextHearingDateFromCaseDetail(ecourtsDetail);
+  const hearingHistoryRows = sortEcourtsHearingsLatestFirst(asArray(ecourtsCourt?.historyOfCaseHearings));
+
+  const hearingHistoryFiltered = useMemo(() => {
+    if (!hearingDateFrom && !hearingDateTo) return hearingHistoryRows;
+    return hearingHistoryRows.filter((h) => ecourtsHearingInDateRange(h, hearingDateFrom, hearingDateTo));
+  }, [hearingHistoryRows, hearingDateFrom, hearingDateTo]);
+
+  const visibleHearingHistory = hearingHistoryFiltered.slice(0, hearingHistoryLimit);
+  const hasMoreHearingHistory = hearingHistoryFiltered.length > hearingHistoryLimit;
+  const hearingFilterActive = Boolean(hearingDateFrom || hearingDateTo);
+
   if (!caseData) {
     return (
       <div className="flex flex-col min-h-screen bg-gray-50 p-4 pb-24">
@@ -83,12 +218,13 @@ export default function CaseDetail() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex-shrink-0 py-3 px-3 text-xs font-medium border-b-2 transition-colors ${
+              className={`flex-shrink-0 py-3 px-3 text-xs font-medium border-b-2 transition-colors flex items-center gap-1 ${
                 activeTab === tab
                   ? 'border-navy-700 text-navy-800'
                   : 'border-transparent text-gray-500'
               }`}
             >
+              {tab === 'eCourts' && <Landmark size={12} />}
               {tab}
             </button>
           ))}
@@ -97,6 +233,16 @@ export default function CaseDetail() {
 
       <div className="flex-1 px-4 py-4">
         {/* OVERVIEW TAB */}
+        {activeTab === 'eCourts' && (
+          <div className="space-y-3">
+            <p className="text-xs text-gray-500">
+              Official case data from eCourts India. Use <strong>Fetch latest</strong> to reload, or{' '}
+              <strong>Refresh case status</strong> to queue a source refresh (may take several minutes).
+            </p>
+            <EcourtsCasePanel cnr={caseData.cnr} />
+          </div>
+        )}
+
         {activeTab === 'Overview' && (
           <div className="space-y-4">
             <Card>
@@ -242,34 +388,138 @@ export default function CaseDetail() {
 
         {/* HEARINGS TAB */}
         {activeTab === 'Hearings' && (
-          <div className="space-y-3">
-            <Card className="bg-blue-50 border-blue-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold text-blue-800">Next Hearing</p>
-                  <p className="text-base font-bold text-blue-900 mt-0.5">{formatDate(caseData.nextHearing)}</p>
-                  <p className="text-xs text-blue-600 mt-0.5">{caseData.court}</p>
-                </div>
-                <Calendar size={32} className="text-blue-300" />
-              </div>
-            </Card>
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Hearing History</p>
-              {caseData.timeline
-                .filter(e => e.type === 'hearing' || e.type === 'filed' || e.type === 'update')
-                .map((event, idx) => (
-                  <div key={idx} className="flex items-start gap-3 py-2.5 border-b border-gray-50 last:border-0">
-                    <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-500 flex-shrink-0">
-                      {new Date(event.date).getDate()}
+          <div className="space-y-5">
+            {cnrKey && (
+              <div className="space-y-4">
+                {!hasPartnerToken() && (
+                  <p className="text-xs text-gray-500">
+                    Add <code className="font-mono bg-gray-100 px-1 rounded">VITE_ECOURTS_API_TOKEN</code> for eCourts next
+                    hearing and history.
+                  </p>
+                )}
+                {hasPartnerToken() && ecourtsHistoryLoading && !ecourtsCourt && (
+                  <p className="text-xs text-gray-500">Loading eCourts case…</p>
+                )}
+                {hasPartnerToken() && !ecourtsHistoryLoading && !ecourtsCourt && (
+                  <p className="text-xs text-gray-500">
+                    No eCourts data yet. Open <strong>eCourts</strong> and tap <strong>Fetch latest</strong>.
+                  </p>
+                )}
+                {hasPartnerToken() && ecourtsCourt && (
+                  <>
+                    <div className="rounded-xl border-2 border-navy-500 bg-gradient-to-br from-navy-50 via-white to-indigo-50/90 p-4 shadow-lg ring-2 ring-navy-100/80">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-navy-800">Next hearing</p>
+                      <p className="mt-1 text-xl font-bold tabular-nums text-navy-950">
+                        {formatEcourtsHearingDate(ecourtsNextHearingRaw)}
+                      </p>
                     </div>
+
+                    <Card className="p-3 space-y-3">
+                      <p className="text-[10px] font-semibold text-gray-500 uppercase flex items-center gap-1.5">
+                        <Calendar size={12} />
+                        Filter history by date
+                      </p>
+                      <div className="flex flex-col gap-2">
+                        <div>
+                          <label htmlFor="client-hearing-from" className="text-[10px] text-gray-500">
+                            From
+                          </label>
+                          <input
+                            id="client-hearing-from"
+                            type="date"
+                            value={hearingDateFrom}
+                            onChange={(e) => setHearingDateFrom(e.target.value)}
+                            className="w-full mt-0.5 rounded-lg border border-gray-200 px-2 py-1.5 text-xs"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="client-hearing-to" className="text-[10px] text-gray-500">
+                            To
+                          </label>
+                          <input
+                            id="client-hearing-to"
+                            type="date"
+                            value={hearingDateTo}
+                            onChange={(e) => setHearingDateTo(e.target.value)}
+                            className="w-full mt-0.5 rounded-lg border border-gray-200 px-2 py-1.5 text-xs"
+                          />
+                        </div>
+                        {hearingFilterActive && (
+                          <button
+                            type="button"
+                            className="text-xs font-semibold text-navy-700 py-1 text-left"
+                            onClick={() => {
+                              setHearingDateFrom('');
+                              setHearingDateTo('');
+                            }}
+                          >
+                            Clear dates
+                          </button>
+                        )}
+                      </div>
+                      <div className="pt-2 border-t border-gray-100">
+                        <p className="text-[10px] font-semibold text-gray-500 uppercase mb-2">Quick ranges</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {HEARING_RELATIVE_PRESETS.map((p) => (
+                            <button
+                              key={p.id}
+                              type="button"
+                              className="text-[10px] px-2 py-1 rounded-full border border-gray-200 bg-gray-50 text-gray-700 active:bg-navy-100"
+                              onClick={() => {
+                                const { from, to } = getRelativeHearingRange(p.id);
+                                setHearingDateFrom(from);
+                                setHearingDateTo(to);
+                              }}
+                            >
+                              {p.label}
+                            </button>
+                          ))}
+                        </div>
+                        <p className="text-[10px] text-gray-400 mt-2">Last N days includes today and the previous N - 1 days.</p>
+                      </div>
+                    </Card>
+
                     <div>
-                      <p className="text-sm font-medium text-gray-800">{event.event}</p>
-                      <p className="text-xs text-gray-500">{event.description}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{formatDate(event.date)}</p>
+                      <h3 className="text-sm font-semibold text-gray-900 mb-2">Hearings history</h3>
+                      {hasPartnerToken() && ecourtsHistoryLoading && hearingHistoryRows.length === 0 && (
+                        <p className="text-xs text-gray-500">Loading hearings history…</p>
+                      )}
+                      {hasPartnerToken() && !ecourtsHistoryLoading && hearingHistoryRows.length === 0 && (
+                        <p className="text-xs text-gray-500">No hearings history for this CNR yet.</p>
+                      )}
+                      {hasPartnerToken() &&
+                        !ecourtsHistoryLoading &&
+                        hearingHistoryRows.length > 0 &&
+                        hearingHistoryFiltered.length === 0 && (
+                          <p className="text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+                            No rows in this date range. Adjust dates or clear the filter.
+                          </p>
+                        )}
+                      {hearingHistoryFiltered.length > 0 && (
+                        <ul className="space-y-2">
+                          {visibleHearingHistory.map((h, i) => (
+                            <li key={i} className="text-xs border-b border-gray-100 last:border-0 pb-3 last:pb-0">
+                              <p className="font-medium text-gray-800">{formatEcourtsHearingDate(h.hearingDate || h.businessOnDate)}</p>
+                              <p className="text-gray-600 mt-0.5">{h.purposeOfListing || '—'}</p>
+                              {h.judge && <p className="text-gray-400 mt-0.5">Judge: {h.judge}</p>}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {hasMoreHearingHistory && (
+                        <button
+                          type="button"
+                          className="mt-3 text-xs font-semibold text-navy-700"
+                          onClick={() => setHearingHistoryLimit((n) => n + HEARING_HISTORY_PAGE_SIZE)}
+                        >
+                          Show more ({hearingHistoryFiltered.length - hearingHistoryLimit} remaining)
+                        </button>
+                      )}
                     </div>
-                  </div>
-                ))}
-            </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

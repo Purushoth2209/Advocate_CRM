@@ -4,7 +4,8 @@ import {
   TrendingUp, Clock, AlertCircle, CheckCircle2,
   ChevronRight, Scale, FileText, ArrowUpRight,
 } from 'lucide-react';
-import { getDashboardStats, mockCases, mockAppointments, mockClients, mockAdvocates } from '../data/mockData';
+import { getDashboardStats, mockAppointments, mockClients, mockAdvocates } from '../data/mockData';
+import { useCases } from '../context/CasesContext';
 
 const statusColors = {
   'Hearing Scheduled': 'bg-blue-100 text-blue-700',
@@ -46,8 +47,16 @@ function StatCard({ icon: Icon, label, value, sub, color, trend }) {
 }
 
 export default function Dashboard() {
-  const stats = getDashboardStats();
-  const upcomingCases = mockCases.filter(c => c.nextHearing).sort((a, b) => new Date(a.nextHearing) - new Date(b.nextHearing)).slice(0, 4);
+  const { cases } = useCases();
+  const stats = {
+    ...getDashboardStats(),
+    totalCases: cases.length,
+    activeCases: cases.filter((c) => c.status !== 'Closed').length,
+  };
+  const upcomingCases = cases
+    .filter((c) => c.nextHearing)
+    .sort((a, b) => new Date(a.nextHearing) - new Date(b.nextHearing))
+    .slice(0, 4);
   const todayAppts = mockAppointments.filter(a => a.date === '2026-04-08' || a.date === '2026-04-09').slice(0, 3);
   const recentClients = mockClients.filter(c => c.status === 'active').slice(0, 4);
 

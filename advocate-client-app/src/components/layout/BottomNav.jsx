@@ -10,10 +10,17 @@ const tabs = [
 ];
 
 /** Under `/cases` but not the list/detail — discover, CNR, book flow; shouldn’t light up Cases tab */
-const CASES_AUXILIARY_PATHS = ['/cases/discover', '/cases/book-appointment', '/cases/cnr'];
+const CASES_AUXILIARY_PATHS = [
+  '/cases/discover',
+  '/cases/book-appointment',
+  '/cases/cnr',
+  '/cases/search',
+];
 
 function isCasesSectionActive(pathname) {
   if (!pathname.startsWith('/cases')) return false;
+  /** Full-screen live case view — not the hub at `/cases/ecourts` */
+  if (/^\/cases\/ecourts\/.+/.test(pathname)) return false;
   return !CASES_AUXILIARY_PATHS.some(
     aux => pathname === aux || pathname.startsWith(`${aux}/`),
   );

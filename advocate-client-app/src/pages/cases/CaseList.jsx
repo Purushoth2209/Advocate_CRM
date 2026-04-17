@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, ChevronRight, Clock, Scale } from 'lucide-react';
+import { Search, ChevronRight, Clock, Scale, Filter, Landmark } from 'lucide-react';
 import Header from '../../components/layout/Header';
 import Card from '../../components/ui/Card';
 import { StatusBadge } from '../../components/ui/Badge';
@@ -29,13 +29,32 @@ export default function CaseList() {
       <Header
         title="My Cases"
         rightAction={
-          <button
-            type="button"
-            onClick={() => navigate('/cases/cnr')}
-            className="text-xs bg-navy-100 text-navy-800 font-semibold px-3 py-1.5 rounded-lg hover:bg-navy-200 transition-colors"
-          >
-            + CNR lookup
-          </button>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <button
+              type="button"
+              onClick={() => navigate('/cases/ecourts')}
+              className="text-xs bg-navy-800 text-gold-400 font-semibold px-2 py-1.5 rounded-lg hover:bg-navy-900 transition-colors flex items-center gap-1"
+              title="eCourts module"
+            >
+              <Landmark size={12} />
+              eCourts
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/cases/search')}
+              className="text-xs bg-white border border-navy-200 text-navy-800 font-semibold px-2 py-1.5 rounded-lg hover:bg-navy-50 transition-colors flex items-center gap-1"
+            >
+              <Filter size={12} />
+              Search
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/cases/cnr')}
+              className="text-xs bg-navy-100 text-navy-800 font-semibold px-2 py-1.5 rounded-lg hover:bg-navy-200 transition-colors"
+            >
+              CNR
+            </button>
+          </div>
         }
       />
 

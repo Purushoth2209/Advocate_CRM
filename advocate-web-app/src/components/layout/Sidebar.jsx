@@ -4,14 +4,26 @@ import Tooltip from '../ui/Tooltip';
 import {
   Scale, LayoutDashboard, Users, FolderOpen, Briefcase,
   CalendarDays, MessageSquare, Settings, ChevronDown,
-  Shield, LogOut, Building2,
+  Shield, LogOut, Building2, Landmark,
 } from 'lucide-react';
 import { useState } from 'react';
+
+function isEcourtsSection(pathname) {
+  return (
+    pathname === '/cases/ecourts' ||
+    /^\/cases\/ecourts\/.+/.test(pathname) ||
+    pathname === '/cases/cnr' ||
+    pathname.startsWith('/cases/cnr/') ||
+    pathname === '/cases/search' ||
+    pathname.startsWith('/cases/search/')
+  );
+}
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard', exact: true, tooltip: 'Dashboard — overview and quick stats' },
   { to: '/clients', icon: Users, label: 'Clients', tooltip: 'All clients and contact records' },
-  { to: '/cases', icon: Briefcase, label: 'Cases', tooltip: 'Matters and case files' },
+  { to: '/cases', icon: Briefcase, label: 'Cases', tooltip: 'Matters and case files', casesNav: true },
+  { to: '/cases/ecourts', icon: Landmark, label: 'eCourts', tooltip: 'CNR lookup, search, live court data (EcourtsIndia API)', ecourtsNav: true },
   { to: '/documents', icon: FolderOpen, label: 'Documents', tooltip: 'Shared and private document vault' },
   { to: '/appointments', icon: CalendarDays, label: 'Appointments', tooltip: 'Calendar and scheduling' },
   { to: '/chat', icon: MessageSquare, label: 'Chat', badge: 2, tooltip: 'Client messaging (2 unread — demo)' },
@@ -66,14 +78,25 @@ export default function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-0.5">
         <p className="text-navy-500 text-xs font-semibold uppercase tracking-wider px-3 mb-2">Main</p>
-        {navItems.map(({ to, icon: Icon, label, badge, exact, tooltip }) => (
+        {navItems.map(({ to, icon: Icon, label, badge, exact, tooltip, casesNav, ecourtsNav }) => (
           <Tooltip key={to} content={tooltip} side="right" className="w-full">
             <NavLink
               to={to}
               end={exact}
-              className={({ isActive: navActive }) =>
-                `sidebar-link ${navActive ? 'sidebar-link-active' : 'sidebar-link-inactive'}`
-              }
+              className={() => {
+                const p = location.pathname;
+                let active = false;
+                if (casesNav) {
+                  active = p.startsWith('/cases') && !isEcourtsSection(p);
+                } else if (ecourtsNav) {
+                  active = isEcourtsSection(p);
+                } else if (exact) {
+                  active = p === to;
+                } else {
+                  active = p === to || p.startsWith(`${to}/`);
+                }
+                return `sidebar-link ${active ? 'sidebar-link-active' : 'sidebar-link-inactive'}`;
+              }}
             >
               <Icon size={18} className="flex-shrink-0" />
               <span className="flex-1">{label}</span>

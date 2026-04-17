@@ -4,7 +4,8 @@ import {
   MapPin, User, Video, Phone, X, CheckCircle2, AlertTriangle,
   Settings, Inbox, List, LayoutGrid,
 } from 'lucide-react';
-import { mockClients, mockCases, mockAvailability, mockAppointments as initialAppointments } from '../../data/mockData';
+import { mockClients, mockAvailability, mockAppointments as initialAppointments } from '../../data/mockData';
+import { useCases } from '../../context/CasesContext';
 import { STATUS_META, generateSlotsForDate, isLateCancel, formatTime12h } from '../../utils/slotGenerator';
 import RequestQueue from './RequestQueue';
 import AvailabilityManager from './AvailabilityManager';
@@ -20,6 +21,7 @@ function fmt12(t24) { return formatTime12h(t24); }
 
 // ── New appointment modal ───────────────────────────────────────────────────
 function NewAppointmentModal({ availability, appointments, onClose, onSave }) {
+  const { cases } = useCases();
   const [form, setForm] = useState({
     clientId: '', caseId: '', date: '', timeStart: '', duration: '60',
     purpose: '', type: 'in-person', location: '', notes: '',
@@ -30,7 +32,7 @@ function NewAppointmentModal({ availability, appointments, onClose, onSave }) {
     : [];
   const availableSlots = slots.filter(s => s.available);
 
-  const clientCases = form.clientId ? mockCases.filter(c => c.clientId === form.clientId) : [];
+  const clientCases = form.clientId ? cases.filter(c => c.clientId === form.clientId) : [];
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -198,6 +200,7 @@ function CalendarDay({ day, dateStr, appts, availability, isToday, isSelected, i
 
 // ── Main Appointments page ──────────────────────────────────────────────────
 export default function Appointments() {
+  const { cases } = useCases();
   const [activeTab, setActiveTab]       = useState('calendar');
   const [viewDate, setViewDate]         = useState({ year: 2026, month: 3 });
   const [selectedDay, setSelectedDay]   = useState(null);
@@ -524,7 +527,7 @@ export default function Appointments() {
               .sort((a, b) => b.date.localeCompare(a.date))
               .map(a => {
                 const client   = mockClients.find(c => c.id === a.clientId);
-                const caseItem = mockCases.find(c => c.id === a.caseId);
+                const caseItem = cases.find(c => c.id === a.caseId);
                 const meta     = STATUS_META[a.status];
                 const Icon     = typeIcon[a.type] || User;
                 return (

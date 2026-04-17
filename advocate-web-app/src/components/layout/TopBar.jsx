@@ -4,25 +4,29 @@ import { useLocation, Link } from 'react-router-dom';
 import { mockNotifications } from '../../data/mockData';
 import Tooltip from '../ui/Tooltip';
 
-const pageTitles = {
-  '/dashboard': 'Dashboard',
-  '/clients': 'Clients',
-  '/cases': 'Cases',
-  '/documents': 'Documents',
-  '/appointments': 'Appointments',
-  '/chat': 'Chat',
-  '/team': 'Team & Users',
-  '/settings': 'Settings',
-};
+function getPageTitle(pathname) {
+  if (pathname === '/dashboard') return 'Dashboard';
+  if (pathname.startsWith('/clients')) return 'Clients';
+  if (pathname === '/cases/ecourts') return 'eCourts India';
+  if (/^\/cases\/ecourts\/.+/.test(pathname)) return 'eCourts — Live case';
+  if (pathname === '/cases/cnr' || pathname.startsWith('/cases/cnr/')) return 'CNR lookup';
+  if (pathname === '/cases/search' || pathname.startsWith('/cases/search')) return 'Search eCourts';
+  if (pathname === '/cases/new') return 'New case';
+  if (pathname.startsWith('/cases')) return 'Cases';
+  if (pathname.startsWith('/documents')) return 'Documents';
+  if (pathname.startsWith('/appointments')) return 'Appointments';
+  if (pathname.startsWith('/chat')) return 'Chat';
+  if (pathname.startsWith('/team')) return 'Team & Users';
+  if (pathname.startsWith('/settings')) return 'Settings';
+  return 'LexDesk';
+}
 
 export default function TopBar() {
   const location = useLocation();
   const [notifOpen, setNotifOpen] = useState(false);
   const unreadCount = mockNotifications.filter(n => !n.read).length;
 
-  const title = Object.entries(pageTitles).find(([path]) =>
-    path === '/dashboard' ? location.pathname === '/dashboard' : location.pathname.startsWith(path)
-  )?.[1] ?? 'LexDesk';
+  const title = getPageTitle(location.pathname);
 
   return (
     <header className="fixed top-0 left-60 right-0 h-14 bg-white border-b border-gray-100 flex items-center justify-between px-6 z-20">

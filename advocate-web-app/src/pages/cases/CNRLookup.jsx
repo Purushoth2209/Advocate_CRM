@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Search, RefreshCw, CheckCircle, ExternalLink, Maximize2 } from 'lucide-react';
-import Header from '../../components/layout/Header';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import EcourtsCasePanel from '../../components/e-courts/EcourtsCasePanel';
@@ -45,10 +44,14 @@ export default function CNRLookup() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 pb-20">
-      <Header title="CNR Case Lookup" showBack />
+    <div className="space-y-5 max-w-3xl">
+      <div className="flex items-center gap-3">
+        <Link to="/cases/ecourts" className="btn-secondary text-xs py-1.5 px-3">
+          ← eCourts hub
+        </Link>
+      </div>
 
-      <div className="px-4 py-5 space-y-4">
+      <div className="space-y-4">
         <Card className="bg-blue-50 border-blue-100">
           <div className="flex items-start gap-2">
             <ExternalLink size={14} className="text-blue-600 mt-0.5 flex-shrink-0" />

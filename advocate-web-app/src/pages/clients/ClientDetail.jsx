@@ -5,7 +5,8 @@ import {
   CalendarDays, MessageSquare, Edit2, Trash2, Plus, Scale,
   ChevronRight, Download,
 } from 'lucide-react';
-import { mockClients, mockCases, mockAppointments, mockAdvocates } from '../../data/mockData';
+import { mockClients, mockAppointments, mockAdvocates } from '../../data/mockData';
+import { useCases } from '../../context/CasesContext';
 import { useAuth } from '../../context/AuthContext';
 import { useDocuments } from '../../context/DocumentsContext';
 import DocumentFormModal from '../../components/documents/DocumentFormModal';
@@ -27,6 +28,7 @@ export default function ClientDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { documents, addDocument, updateDocument, deleteDocument } = useDocuments();
+  const { cases: allCases } = useCases();
   const [activeTab, setActiveTab] = useState('Overview');
   const [docModalOpen, setDocModalOpen] = useState(false);
   const [editingDoc, setEditingDoc] = useState(null);
@@ -41,7 +43,7 @@ export default function ClientDetail() {
   );
 
   const advocate = mockAdvocates.find(a => a.id === client.assignedAdvocateId);
-  const cases = mockCases.filter(c => c.clientId === client.id);
+  const cases = allCases.filter(c => c.clientId === client.id);
   const docs = documents.filter(d => d.clientId === client.id);
   const appointments = mockAppointments.filter(a => a.clientId === client.id);
 

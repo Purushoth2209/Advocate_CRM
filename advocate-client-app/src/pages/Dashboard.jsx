@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Scale, Briefcase, Calendar, ChevronRight, CalendarDays, Search, Users, FileText, Bell } from 'lucide-react';
+import { Scale, Briefcase, Calendar, ChevronRight, CalendarDays, Search, Users, FileText, Bell, Landmark } from 'lucide-react';
 import Header from '../components/layout/Header';
 import Card from '../components/ui/Card';
 import { StatusBadge } from '../components/ui/Badge';
@@ -131,12 +131,28 @@ export default function Dashboard() {
           </Card>
         )}
 
+        <Card
+          className="border-navy-200 bg-gradient-to-r from-navy-900/5 to-teal-50/50 shadow-md"
+          onClick={() => navigate('/cases/ecourts')}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-navy-800 flex items-center justify-center flex-shrink-0">
+              <Landmark size={22} className="text-gold-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-navy-900 uppercase tracking-wide">eCourts module</p>
+              <p className="text-xs text-gray-600 mt-0.5">CNR lookup · search · live case data</p>
+            </div>
+            <ChevronRight size={18} className="text-navy-400 flex-shrink-0" />
+          </div>
+        </Card>
+
         <div>
           <h3 className="text-xs font-bold text-navy-900 uppercase tracking-wide mb-3">Quick actions</h3>
           <div className="grid grid-cols-4 gap-2">
             {[
               { label: 'Cases', icon: Briefcase, path: '/cases', tone: 'bg-navy-100 text-navy-700' },
-              { label: 'CNR', icon: Search, path: '/cases/cnr', tone: 'bg-teal-50 text-teal-700' },
+              { label: 'eCourts', icon: Landmark, path: '/cases/ecourts', tone: 'bg-navy-800 text-gold-400' },
               { label: 'Book', icon: CalendarDays, path: '/cases/book-appointment', tone: 'bg-amber-50 text-amber-700' },
               { label: 'Find', icon: Scale, path: '/cases/discover', tone: 'bg-gold-400/30 text-navy-900' },
             ].map(action => (
@@ -154,7 +170,7 @@ export default function Dashboard() {
             ))}
           </div>
           <p className="text-[10px] text-center text-gray-400 mt-2 px-2">
-            Case list, eCourts CNR lookup, book time with your advocate, or browse the advocate directory.
+            My cases, open the <strong className="text-gray-600">eCourts</strong> hub, book time, or browse advocates.
           </p>
         </div>
 

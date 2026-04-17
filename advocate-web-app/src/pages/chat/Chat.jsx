@@ -4,7 +4,8 @@ import {
   Send, Paperclip, Search, Phone, Video, MoreVertical,
   CheckCheck, Clock, Circle,
 } from 'lucide-react';
-import { mockClients, mockChats, mockCases } from '../../data/mockData';
+import { mockClients, mockChats } from '../../data/mockData';
+import { useCases } from '../../context/CasesContext';
 import Tooltip from '../../components/ui/Tooltip';
 
 const ADVOCATE_ID = 'adv-001';
@@ -20,6 +21,7 @@ function timeFmt(ts) {
 }
 
 export default function Chat() {
+  const { cases } = useCases();
   const [searchParams] = useSearchParams();
   const initialClient = searchParams.get('client');
   const [selectedClientId, setSelectedClientId] = useState(initialClient || 'cli-001');
@@ -30,7 +32,7 @@ export default function Chat() {
 
   const activeClient = mockClients.find(c => c.id === selectedClientId);
   const messages = chats[selectedClientId] || [];
-  const clientCases = mockCases.filter(c => c.clientId === selectedClientId);
+  const clientCases = cases.filter(c => c.clientId === selectedClientId);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
