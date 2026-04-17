@@ -1,3 +1,13 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/api/partner/:path*",
+      "destination": "https://webapi.ecourtsindia.com/api/partner/:path*"
+    },
+    {
+      "source": "/api/CauseList/:path*",
+      "destination": "https://webapi.ecourtsindia.com/api/CauseList/:path*"
+    },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
